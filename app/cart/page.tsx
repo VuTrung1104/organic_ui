@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { apiService, type CartItem } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/layout';
+import { Toast } from '../components/ui';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '../lib/constants';
 
 export default function CartPage() {
@@ -15,6 +16,10 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,7 +51,7 @@ export default function CartPage() {
       await fetchCart();
     } catch (error) {
       console.error('Error updating quantity:', error);
-      alert(ERROR_MESSAGES.CART_UPDATE_FAILED);
+      setToast({ message: ERROR_MESSAGES.CART_UPDATE_FAILED, type: 'error' });
     } finally {
       setUpdating(null);
     }
@@ -61,7 +66,7 @@ export default function CartPage() {
       await fetchCart();
     } catch (error) {
       console.error('Error removing item:', error);
-      alert(ERROR_MESSAGES.CART_REMOVE_FAILED);
+      setToast({ message: ERROR_MESSAGES.CART_REMOVE_FAILED, type: 'error' });
     } finally {
       setUpdating(null);
     }
@@ -69,17 +74,19 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      alert(ERROR_MESSAGES.CART_EMPTY);
+      setToast({ message: ERROR_MESSAGES.CART_EMPTY, type: 'error' });
       return;
     }
 
     try {
       const order = await apiService.checkoutFromCart();
-      alert(SUCCESS_MESSAGES.CHECKOUT_SUCCESS);
-      router.push(`/orders/${order._id}`);
+      setToast({ message: SUCCESS_MESSAGES.CHECKOUT_SUCCESS, type: 'success' });
+      setTimeout(() => {
+        router.push(`/orders/${order._id}`);
+      }, 1500);
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert(ERROR_MESSAGES.CHECKOUT_FAILED);
+      setToast({ message: ERROR_MESSAGES.CHECKOUT_FAILED, type: 'error' });
     }
   };
 
@@ -102,6 +109,13 @@ export default function CartPage() {
   return (
     <>
       <Header />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="min-h-screen pt-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}

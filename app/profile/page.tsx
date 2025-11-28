@@ -87,29 +87,6 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const handleDeleteAvatar = async () => {
-    if (!confirm(CONFIRM_MESSAGES.DELETE_AVATAR)) return;
-
-    setSaving(true);
-    try {
-      await apiService.deleteAvatar();
-
-      if (profile) {
-        setProfile({ ...profile, avatar: undefined });
-      }
-      setAvatarPreview(null);
-      setAvatarFile(null);
-
-      alert(SUCCESS_MESSAGES.AVATAR_DELETED);
-      window.location.reload();
-    } catch (error) {
-      console.error("Delete avatar error:", error);
-      alert(ERROR_MESSAGES.AVATAR_DELETE_FAILED);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -312,25 +289,14 @@ export default function ProfilePage() {
                   className="hidden"
                 />
                 {editing && (
-                  <>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition"
-                    >
-                      <Upload className="w-4 h-4" />
-                    </button>
-                    {(profile.avatar || avatarPreview) && (
-                      <button
-                        type="button"
-                        onClick={handleDeleteAvatar}
-                        disabled={saving}
-                        className="absolute bottom-0 left-0 p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition disabled:opacity-50"
-                        title="Xóa ảnh đại diện"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition z-10"
+                    title="Tải ảnh lên"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
                 )}
               </div>
             </div>

@@ -44,9 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('rememberMe');
+    
     setAccessToken(null);
     setIsAuthenticated(false);
-    router.push('/');
+    
+    // Dùng window.location.href để reload trang hoàn toàn
+    window.location.href = '/';
   };
 
   return (

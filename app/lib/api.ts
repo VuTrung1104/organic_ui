@@ -492,22 +492,6 @@ class ApiService {
       console.error('Logout error:', error);
     }
   }
-
-  async deleteAvatar(): Promise<void> {
-    try {
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.AUTH.AVATAR}`, {
-        method: 'DELETE',
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-    } catch (error) {
-      console.error('Delete avatar error:', error);
-      throw error;
-    }
-  }
 }
 
 export const apiService = new ApiService();

@@ -5,7 +5,8 @@ import { Leaf, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { apiService } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { ERROR_MESSAGES, STORAGE_KEYS, DELAYS } from '../lib/constants';
+import { Toast } from '../components/ui';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, STORAGE_KEYS, DELAYS } from '../lib/constants';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,10 +33,9 @@ export default function LoginPage() {
           localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
         }
         
-        // Đợi một chút để đảm bảo localStorage được lưu
-        setTimeout(() => {
-          window.location.href = '/';
-        }, DELAYS.REDIRECT_AFTER_LOGIN);
+        // Lưu flag để hiển thị toast sau khi chuyển trang
+        localStorage.setItem('showLoginSuccess', 'true');
+        window.location.href = '/';
       } else {
         setLoading(false);
       }
@@ -46,7 +47,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
@@ -167,5 +176,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

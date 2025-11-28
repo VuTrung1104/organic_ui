@@ -6,6 +6,7 @@ import { ArrowLeft, ShoppingCart, Heart, Plus, Minus } from 'lucide-react';
 import Image from 'next/image';
 import { apiService, type Product } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Toast } from '../../components/ui';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -17,6 +18,10 @@ export default function ProductDetailPage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [togglingWishlist, setTogglingWishlist] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,10 +49,10 @@ export default function ProductDetailPage() {
     setAddingToCart(true);
     try {
       await apiService.addToCart(params.id as string, quantity);
-      alert('Đã thêm vào giỏ hàng!');
+      setToast({ message: 'Đã thêm vào giỏ hàng!', type: 'success' });
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Không thể thêm vào giỏ hàng');
+      setToast({ message: 'Không thể thêm vào giỏ hàng', type: 'error' });
     } finally {
       setAddingToCart(false);
     }
@@ -63,10 +68,13 @@ export default function ProductDetailPage() {
     try {
       const result = await apiService.toggleWishlist(params.id as string);
       setIsInWishlist(result.isInWishlist);
-      alert(result.isInWishlist ? 'Đã thêm vào yêu thích!' : 'Đã xóa khỏi yêu thích!');
+      setToast({ 
+        message: result.isInWishlist ? 'Đã thêm vào yêu thích!' : 'Đã xóa khỏi yêu thích!', 
+        type: 'success' 
+      });
     } catch (error) {
       console.error('Error toggling wishlist:', error);
-      alert('Không thể cập nhật danh sách yêu thích');
+      setToast({ message: 'Không thể cập nhật danh sách yêu thích', type: 'error' });
     } finally {
       setTogglingWishlist(false);
     }
@@ -93,7 +101,15 @@ export default function ProductDetailPage() {
     : product.price;
 
   return (
-    <div className="min-h-screen pt-20 bg-gray-50">
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="min-h-screen pt-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
@@ -216,5 +232,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

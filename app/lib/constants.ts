@@ -85,6 +85,7 @@ export const ERROR_MESSAGES = {
 } as const;
 
 export const SUCCESS_MESSAGES = {
+  LOGIN_SUCCESS: 'Đăng nhập thành công!',
   REGISTER_SUCCESS: 'Đăng ký thành công! Vui lòng đăng nhập.',
   OTP_RESENT: 'Mã OTP mới đã được gửi đến email của bạn!',
   CHECKOUT_SUCCESS: 'Đặt hàng thành công!',
@@ -99,7 +100,7 @@ export const CONFIRM_MESSAGES = {
 // UI Delays
 export const DELAYS = {
   REDIRECT_AFTER_REGISTER: 1500,
-  REDIRECT_AFTER_LOGIN: 100,
+  REDIRECT_AFTER_LOGIN: 1500,
 } as const;
 
 // Toast Duration
