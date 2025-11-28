@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rau Củ Tươi - Từ Trang Trại Đến Bàn Ăn",
+  title: "Trung Organic - Rau Củ Quả Tươi",
   description: "Cung cấp rau củ quả tươi ngon, sạch sẽ, được trồng theo phương pháp hữu cơ, đảm bảo an toàn cho sức khỏe gia đình bạn",
 };
 

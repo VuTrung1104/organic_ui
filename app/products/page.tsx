@@ -1,6 +1,5 @@
-import Header from '../components/Header';
-import ProductsSection from '../components/ProductsSection';
-import Footer from '../components/Footer';
+import { Header, Footer } from '../components/layout';
+import { ProductsSection } from '../components/sections';
 
 export default function ProductsPage() {
   return (

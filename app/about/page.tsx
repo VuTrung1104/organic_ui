@@ -1,6 +1,5 @@
-import Header from '../components/Header';
-import AboutSection from '../components/AboutSection';
-import Footer from '../components/Footer';
+import { Header, Footer } from '../components/layout';
+import { AboutSection } from '../components/sections';
 
 export default function AboutPage() {
   return (

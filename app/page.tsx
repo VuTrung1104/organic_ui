@@ -1,8 +1,5 @@
-import Header from "./components/Header";
-import HeroSection from "./components/HeroSection";
-import AboutSection from "./components/AboutSection";
-import ProductsSection from "./components/ProductsSection";
-import Footer from "./components/Footer";
+import { Header, Footer } from "./components/layout";
+import { HeroSection, AboutSection, ProductsSection } from "./components/sections";
 
 export default function Home() {
   return (
@@ -10,7 +7,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <AboutSection />
-      <ProductsSection />
+      <ProductsSection showViewAll={true} />
       <Footer />
     </div>
   );

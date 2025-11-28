@@ -6,7 +6,8 @@ import { ArrowLeft, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import { apiService, type CartItem } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import Header from '../components/Header';
+import { Header } from '../components/layout';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '../lib/constants';
 
 export default function CartPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function CartPage() {
       const response = await apiService.getCart({ limit: 100 });
       setCartItems(response.data);
     } catch (error) {
-      console.error('Error fetching cart:', error);
+      console.error(ERROR_MESSAGES.CART_FETCH_FAILED, error);
     } finally {
       setLoading(false);
     }
@@ -45,14 +46,14 @@ export default function CartPage() {
       await fetchCart();
     } catch (error) {
       console.error('Error updating quantity:', error);
-      alert('Không thể cập nhật số lượng');
+      alert(ERROR_MESSAGES.CART_UPDATE_FAILED);
     } finally {
       setUpdating(null);
     }
   };
 
   const removeItem = async (cartItemId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
+    if (!confirm(CONFIRM_MESSAGES.REMOVE_CART_ITEM)) return;
 
     setUpdating(cartItemId);
     try {
@@ -60,7 +61,7 @@ export default function CartPage() {
       await fetchCart();
     } catch (error) {
       console.error('Error removing item:', error);
-      alert('Không thể xóa sản phẩm');
+      alert(ERROR_MESSAGES.CART_REMOVE_FAILED);
     } finally {
       setUpdating(null);
     }
@@ -68,17 +69,17 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      alert('Giỏ hàng trống!');
+      alert(ERROR_MESSAGES.CART_EMPTY);
       return;
     }
 
     try {
       const order = await apiService.checkoutFromCart();
-      alert('Đặt hàng thành công!');
+      alert(SUCCESS_MESSAGES.CHECKOUT_SUCCESS);
       router.push(`/orders/${order._id}`);
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Không thể đặt hàng');
+      alert(ERROR_MESSAGES.CHECKOUT_FAILED);
     }
   };
 

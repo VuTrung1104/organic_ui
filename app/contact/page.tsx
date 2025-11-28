@@ -1,6 +1,5 @@
-import Header from '../components/Header';
-import ContactSection from '../components/ContactSection';
-import Footer from '../components/Footer';
+import { Header, Footer } from '../components/layout';
+import { ContactSection } from '../components/sections';
 
 export default function ContactPage() {
   return (

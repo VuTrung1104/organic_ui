@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, Calendar, DollarSign } from 'lucide-react';
 import { apiService, type Order } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import Header from '../components/Header';
+import { Header } from '../components/layout';
 
 export default function OrdersPage() {
   const router = useRouter();

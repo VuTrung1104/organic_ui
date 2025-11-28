@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Leaf, LogOut, User, ChevronDown, Package, Heart } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { apiService, type UserProfile } from '../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiService, type UserProfile } from '../../lib/api';
+import { ERROR_MESSAGES } from '../../lib/constants';
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuth();
@@ -33,7 +34,7 @@ export default function Header() {
         }
       })
       .catch((error) => {
-        console.error('Failed to load profile for header:', error);
+        console.error(ERROR_MESSAGES.PROFILE_LOAD_FAILED, error);
         if (isActive) {
           setProfile(null);
         }
@@ -53,7 +54,7 @@ export default function Header() {
               <Leaf className="w-7 h-7 text-white" />
             </div>
             <span className="text-2xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-              Rau Củ Tươi
+              TrungOrganic
             </span>
           </Link>
           

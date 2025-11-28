@@ -5,6 +5,7 @@ import { Leaf, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { apiService } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { ERROR_MESSAGES, STORAGE_KEYS, DELAYS } from '../lib/constants';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,19 +28,19 @@ export default function LoginPage() {
         authLogin(result.accessToken, result.refreshToken);
         
         if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
         }
         
         // Đợi một chút để đảm bảo localStorage được lưu
         setTimeout(() => {
           window.location.href = '/';
-        }, 100);
+        }, DELAYS.REDIRECT_AFTER_LOGIN);
       } else {
         setLoading(false);
       }
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      setError(error.message || ERROR_MESSAGES.LOGIN_FAILED);
       setLoading(false);
     }
   };
@@ -54,7 +55,7 @@ export default function LoginPage() {
               <Leaf className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-              Rau Củ Tươi
+              TrungOrganic
             </h1>
           </div>
           <p className="text-gray-600 text-lg">Đăng nhập vào tài khoản của bạn</p>
@@ -79,7 +80,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="example@email.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-gray-600"
                 required
               />
             </div>
@@ -95,8 +96,8 @@ export default function LoginPage() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="········"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition pr-12"
+                  placeholder="•••••••••"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition pr-12 text-gray-600"
                   required
                 />
                 <button
@@ -136,7 +137,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-green-700 transition disabled:bg-green-400 disabled:cursor-not-allowed"
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-green-700 transition disabled:bg-green-500 disabled:cursor-not-allowed"
             >
               {loading ? 'Đang xử lý...' : 'Đăng Nhập'}
             </button>

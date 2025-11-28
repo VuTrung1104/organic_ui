@@ -1,11 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Mail, Phone, Edit2, Save, X, Upload, Camera } from 'lucide-react';
-import { apiService, type UserProfile } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
-import Toast from '../components/Toast';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Edit2,
+  Save,
+  X,
+  Upload,
+  Camera,
+} from "lucide-react";
+import { apiService, type UserProfile } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
+import { Toast } from "../components/ui";
+import { CONFIRM_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "../lib/constants";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -14,19 +25,22 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
-    fullname: '',
-    phoneNumber: '',
+    fullname: "",
+    phoneNumber: "",
   });
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
@@ -38,11 +52,11 @@ export default function ProfilePage() {
           setProfile(data);
           setFormData({
             fullname: data.fullname,
-            phoneNumber: data.phoneNumber || '',
+            phoneNumber: data.phoneNumber || "",
           });
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
       } finally {
         setLoading(false);
       }
@@ -52,13 +66,16 @@ export default function ProfilePage() {
   }, [isAuthenticated, router]);
 
   const handleAvatarChange = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setToast({ message: 'Vui lòng chọn file ảnh!', type: 'error' });
+    if (!file.type.startsWith("image/")) {
+      setToast({ message: "Vui lòng chọn file ảnh!", type: "error" });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setToast({ message: 'Kích thước ảnh không được vượt quá 5MB!', type: 'error' });
+      setToast({
+        message: "Kích thước ảnh không được vượt quá 5MB!",
+        type: "error",
+      });
       return;
     }
 
@@ -68,6 +85,29 @@ export default function ProfilePage() {
       setAvatarFile(file);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm(CONFIRM_MESSAGES.DELETE_AVATAR)) return;
+
+    setSaving(true);
+    try {
+      await apiService.deleteAvatar();
+
+      if (profile) {
+        setProfile({ ...profile, avatar: undefined });
+      }
+      setAvatarPreview(null);
+      setAvatarFile(null);
+
+      alert(SUCCESS_MESSAGES.AVATAR_DELETED);
+      window.location.reload();
+    } catch (error) {
+      console.error("Delete avatar error:", error);
+      alert(ERROR_MESSAGES.AVATAR_DELETE_FAILED);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -108,21 +148,30 @@ export default function ProfilePage() {
         // If there's a new avatar, upload it
         if (avatarFile) {
           const formDataUpload = new FormData();
-          formDataUpload.append('file', avatarFile);
+          formDataUpload.append("file", avatarFile);
 
           try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/avatar`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-              },
-              body: formDataUpload,
-            });
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/avatar`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem(
+                    "accessToken"
+                  )}`,
+                },
+                body: formDataUpload,
+              }
+            );
 
             if (response.ok) {
               const result = await response.json();
               // Update profile with new avatar
-              const newAvatar = result.data?.avatar || result.avatar || result.data?.url || result.url;
+              const newAvatar =
+                result.data?.avatar ||
+                result.avatar ||
+                result.data?.url ||
+                result.url;
               if (newAvatar) {
                 setProfile({ ...updated, avatar: newAvatar });
                 // Reload page to update header avatar
@@ -131,23 +180,30 @@ export default function ProfilePage() {
                 }, 1000);
               }
             } else {
-              console.error('Avatar upload failed:', response.status, await response.text());
-              setToast({ message: 'Cập nhật ảnh thất bại!', type: 'error' });
+              console.error(
+                "Avatar upload failed:",
+                response.status,
+                await response.text()
+              );
+              setToast({ message: "Cập nhật ảnh thất bại!", type: "error" });
             }
           } catch (error) {
-            console.error('Avatar upload error:', error);
-            setToast({ message: 'Cập nhật ảnh thất bại!', type: 'error' });
+            console.error("Avatar upload error:", error);
+            setToast({ message: "Cập nhật ảnh thất bại!", type: "error" });
           }
         }
 
         setEditing(false);
         setAvatarPreview(null);
         setAvatarFile(null);
-        setToast({ message: 'Cập nhật thông tin thành công!', type: 'success' });
+        setToast({
+          message: "Cập nhật thông tin thành công!",
+          type: "success",
+        });
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setToast({ message: 'Cập nhật thông tin thất bại!', type: 'error' });
+      console.error("Error updating profile:", error);
+      setToast({ message: "Cập nhật thông tin thất bại!", type: "error" });
     } finally {
       setSaving(false);
     }
@@ -157,7 +213,7 @@ export default function ProfilePage() {
     if (profile) {
       setFormData({
         fullname: profile.fullname,
-        phoneNumber: profile.phoneNumber || '',
+        phoneNumber: profile.phoneNumber || "",
       });
     }
     setAvatarPreview(null);
@@ -201,7 +257,9 @@ export default function ProfilePage() {
               >
                 <ArrowLeft className="w-6 h-6" />
               </button>
-              <h1 className="text-3xl font-bold text-gray-900">Thông Tin Cá Nhân</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Thông Tin Cá Nhân
+              </h1>
             </div>
             {!editing && (
               <button
@@ -224,7 +282,7 @@ export default function ProfilePage() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   className={`w-32 h-32 bg-green-600 rounded-full flex items-center justify-center overflow-hidden cursor-pointer transition ${
-                    isDragging ? 'ring-4 ring-green-400 scale-105' : ''
+                    isDragging ? "ring-4 ring-green-400 scale-105" : ""
                   }`}
                   onClick={() => editing && fileInputRef.current?.click()}
                 >
@@ -238,10 +296,10 @@ export default function ProfilePage() {
                     <User className="w-16 h-16 text-white" />
                   )}
                   {editing && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <div className="absolute inset-0 bg-green bg-opacity-50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
                       <Camera className="w-8 h-8 text-white mb-1" />
                       <span className="text-white text-xs text-center px-2">
-                        {isDragging ? 'Thả ảnh vào đây' : 'Kéo thả hoặc click'}
+                        {isDragging ? "Thả ảnh vào đây" : "Kéo thả hoặc click"}
                       </span>
                     </div>
                   )}
@@ -254,12 +312,25 @@ export default function ProfilePage() {
                   className="hidden"
                 />
                 {editing && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </button>
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 p-2 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                    {(profile.avatar || avatarPreview) && (
+                      <button
+                        type="button"
+                        onClick={handleDeleteAvatar}
+                        disabled={saving}
+                        className="absolute bottom-0 left-0 p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition disabled:opacity-50"
+                        title="Xóa ảnh đại diện"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -275,8 +346,10 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     value={formData.fullname}
-                    onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullname: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
                   />
                 ) : (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -294,7 +367,9 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <Mail className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-900">{profile.email}</span>
-                  <span className="ml-auto text-xs text-gray-500">(Không thể thay đổi)</span>
+                  <span className="ml-auto text-xs text-gray-500">
+                    (Không thể thay đổi)
+                  </span>
                 </div>
               </div>
 
@@ -307,15 +382,17 @@ export default function ProfilePage() {
                   <input
                     type="tel"
                     value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phoneNumber: e.target.value })
+                    }
                     placeholder="Nhập số điện thoại"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
                   />
                 ) : (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <Phone className="w-5 h-5 text-gray-400" />
                     <span className="text-gray-900">
-                      {profile.phoneNumber || 'Chưa cập nhật'}
+                      {profile.phoneNumber || "Chưa cập nhật"}
                     </span>
                   </div>
                 )}
@@ -327,7 +404,9 @@ export default function ProfilePage() {
                   Vai trò
                 </label>
                 <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-green-700 font-medium">{profile.role.name}</span>
+                  <span className="text-green-700 font-medium">
+                    {profile.role.name}
+                  </span>
                 </div>
               </div>
             </div>
@@ -348,7 +427,7 @@ export default function ProfilePage() {
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-300"
                 >
                   <Save className="w-5 h-5" />
-                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  {saving ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </div>
             )}

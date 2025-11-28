@@ -22,7 +22,7 @@ export default function ContactSection() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Hotline</h2>
                 <p className="text-gray-600 mt-1">
-                  0123 456 789 (7:00 - 21:00)
+                  00356405022 (7:00 - 21:00)
                 </p>
               </div>
             </div>
@@ -34,7 +34,7 @@ export default function ContactSection() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Email</h2>
                 <p className="text-gray-600 mt-1">
-                  info@raucutuoi.vn
+                  trung@organic.vn
                 </p>
               </div>
             </div>
@@ -46,7 +46,7 @@ export default function ContactSection() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Văn Phòng</h2>
                 <p className="text-gray-600 mt-1">
-                  123 Đường Nguyễn Văn Linh, Quận 7, TP. Hồ Chí Minh
+                  TP. Hồ Chí Minh
                 </p>
               </div>
             </div>

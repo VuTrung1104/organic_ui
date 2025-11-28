@@ -1,14 +1,21 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import ProductCard from './ProductCard';
-import { apiService, type Product, type Category } from '../lib/api';
+import { ProductCard } from '../ui';
+import { apiService, type Product, type Category } from '../../lib/api';
 
-export default function ProductsSection() {
+interface ProductsSectionProps {
+  showViewAll?: boolean;
+}
+
+export default function ProductsSection({ showViewAll = false }: ProductsSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string | number>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,11 +31,14 @@ export default function ProductsSection() {
           : undefined;
           
         const productsData = await apiService.fetchProducts({ 
-          limit: 8,
+          page: currentPage,
+          limit: 10,
           category: categoryId
         });
 
         setProducts(productsData.data);
+        setTotal(productsData.pagination?.total || productsData.total || 0);
+        setTotalPages(productsData.pagination?.totalPages || Math.ceil((productsData.pagination?.total || productsData.total || 0) / 10));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -37,26 +47,27 @@ export default function ProductsSection() {
     };
 
     fetchData();
-  }, [activeCategory]);
+  }, [activeCategory, currentPage]);
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Sản Phẩm Của Chúng Tôi
           </h2>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8">
+          <p className="text-base text-gray-600 max-w-3xl mx-auto mb-6">
             Khám phá bộ sưu tập rau củ quả tươi ngon, được chọn lọc kỹ càng từ các trang trại hữu cơ
           </p>
           
           {/* Category Filter */}
-          <div className="flex justify-center gap-4 flex-wrap">
+          <div className="flex justify-center gap-3 flex-wrap">
             <button
               onClick={() => {
                 setActiveCategory('all');
+                setCurrentPage(1);
               }}
-              className={`px-8 py-3 rounded-full font-medium transition ${
+              className={`px-6 py-2 rounded-full text-sm font-medium transition ${
                 activeCategory === 'all'
                   ? 'bg-green-600 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -70,8 +81,9 @@ export default function ProductsSection() {
                   key={index}
                   onClick={() => {
                     setActiveCategory(index);
+                    setCurrentPage(1);
                   }}
-                  className={`px-8 py-3 rounded-full font-medium transition ${
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition ${
                     activeCategory === index
                       ? 'bg-green-600 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -92,20 +104,41 @@ export default function ProductsSection() {
           </div>
         ) : products.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
               {products.map((product, index) => (
                 <ProductCard key={`${product._id}-${index}`} product={product} />
               ))}
             </div>
 
-            <div className="text-center">
-              <a 
-                href="/products" 
-                className="inline-block px-10 py-4 bg-white border-2 border-green-600 text-green-600 rounded-full font-medium hover:bg-green-50 transition text-lg"
-              >
-                Xem Tất Cả Sản Phẩm
-              </a>
-            </div>
+            {/* Pagination */}
+            {!showViewAll && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mb-6">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
+                      currentPage === page
+                        ? 'bg-green-600 text-white'
+                        : 'border border-gray-300 text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {showViewAll && (
+              <div className="text-center">
+                <a 
+                  href="/products" 
+                  className="inline-block px-8 py-3 bg-white border-2 border-green-600 text-green-600 rounded-full font-medium hover:bg-green-50 transition text-base"
+                >
+                  Xem Tất Cả Sản Phẩm
+                </a>
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-12">

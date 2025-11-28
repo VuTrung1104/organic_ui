@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { apiService, type Product } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import Header from '../components/Header';
-import ProductCard from '../components/ProductCard';
+import { Header } from '../components/layout';
+import { ProductCard } from '../components/ui';
 
 export default function WishlistPage() {
   const router = useRouter();
