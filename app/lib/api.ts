@@ -49,12 +49,16 @@ class ApiService {
     page?: number;
     limit?: number;
     category?: string;
+    includeDeleted?: boolean;
   }): Promise<PaginatedResponse<Product>> {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
       if (params?.category) queryParams.append('category', params.category);
+      if (params?.includeDeleted !== undefined) queryParams.append('includeDeleted', params.includeDeleted.toString());
+
+      queryParams.append('_t', Date.now().toString());
 
       const url = `${this.baseUrl}${API_ENDPOINTS.PRODUCTS.LIST}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await fetch(url, {
@@ -66,7 +70,20 @@ class ApiService {
         await handleApiError(response);
       }
 
-      return await response.json();
+      const result = await response.json();
+
+      if (result.data && Array.isArray(result.data)) {
+        result.data = result.data.map((product: any) => ({
+          ...product,
+          _id: product.id || product._id,
+          category: product.category ? {
+            ...product.category,
+            _id: product.category.id || product.category._id,
+          } : product.category,
+        }));
+      }
+      
+      return result;
     } catch (error) {
       console.error('Error fetching products:', error);
       throw error;
@@ -104,7 +121,13 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data;
+
+      const categories = result.data.map((cat: any) => ({
+        ...cat,
+        _id: cat.id || cat._id,
+      }));
+      
+      return categories;
     } catch (error) {
       console.error('Error fetching categories:', error);
       throw error;
@@ -383,11 +406,10 @@ class ApiService {
   // Profile APIs
   async getProfile(): Promise<UserProfile | null> {
     try {
-      // Check if token exists before making request
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         if (!token) {
-          return null; // No token, return null instead of making failed request
+          return null; 
         }
       }
 
@@ -396,13 +418,12 @@ class ApiService {
       });
 
       if (!response.ok) {
-        // If unauthorized, clear invalid token and return null (don't throw)
         if (response.status === 401) {
           if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
             localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
           }
-          return null; // Return null instead of throwing error
+          return null;
         }
         await handleApiError(response);
       }
@@ -410,7 +431,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      // Silent fail for profile fetch - just return null
       if (error instanceof Error && error.message.includes('401')) {
         return null;
       }
@@ -485,11 +505,192 @@ class ApiService {
       });
 
       if (!response.ok) {
-        // Ignore logout API errors, just clear local tokens
         console.warn('Logout API failed, clearing local tokens anyway');
       }
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  }
+
+  //Admin
+  // Product Management
+  async createProduct(data: {
+    name: string;
+    description?: string;
+    price: number;
+    quantity: number;
+    categoryId?: string;
+  }): Promise<Product> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/product/create`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Create product error:', error);
+      throw error;
+    }
+  }
+
+  async updateProduct(productId: string, data: {
+    name?: string;
+    description?: string;
+    price?: number;
+    quantity?: number;
+    categoryId?: string;
+  }): Promise<Product> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/product/${productId}`, {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Update product error:', error);
+      throw error;
+    }
+  }
+
+  async deleteProduct(productId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/product/${productId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Delete product error:', error);
+      throw error;
+    }
+  }
+
+  async deleteProductImage(productId: string, imageId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/product/${productId}/images/${imageId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Delete product image error:', error);
+      throw error;
+    }
+  }
+
+  // Category Management
+  async createCategory(data: { name: string; description?: string }): Promise<Category> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/category/create`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Create category error:', error);
+      throw error;
+    }
+  }
+
+  async updateCategory(categoryId: string, data: { name?: string; description?: string }): Promise<Category> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/category/${categoryId}`, {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Update category error:', error);
+      throw error;
+    }
+  }
+
+  async deleteCategory(categoryId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/category/${categoryId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Delete category error:', error);
+      throw error;
+    }
+  }
+
+  // Get all orders for admin
+  async getAllOrders(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<Order>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+      const url = `${this.baseUrl}/api/v1/order/pagination${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await fetch(url, {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Get all orders error:', error);
+      throw error;
+    }
+  }
+
+  async deleteOrder(orderId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/order/${orderId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Delete order error:', error);
+      throw error;
     }
   }
 }

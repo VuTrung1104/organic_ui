@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductCard } from '../ui';
 import { apiService, type Product, type Category } from '../../lib/api';
 
@@ -9,7 +10,7 @@ interface ProductsSectionProps {
 }
 
 export default function ProductsSection({ showViewAll = false }: ProductsSectionProps) {
-  const [activeCategory, setActiveCategory] = useState<string | number>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,19 +22,16 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch categories first
         const categoriesData = await apiService.fetchCategories();
         setCategories(categoriesData);
-        
-        // Then fetch products with correct category ID
-        const categoryId = activeCategory !== 'all' && typeof activeCategory === 'number' 
-          ? categoriesData[activeCategory]?._id 
-          : undefined;
+
+        const categoryId = activeCategory !== 'all' ? activeCategory : undefined;
           
         const productsData = await apiService.fetchProducts({ 
           page: currentPage,
           limit: 10,
-          category: categoryId
+          category: categoryId,
+          includeDeleted: false
         });
 
         setProducts(productsData.data);
@@ -75,16 +73,16 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
             >
               Tất Cả
             </button>
-            {categories.map((category, index) => {
+            {categories.map((category) => {
               return (
                 <button
-                  key={index}
+                  key={category._id}
                   onClick={() => {
-                    setActiveCategory(index);
+                    setActiveCategory(category._id);
                     setCurrentPage(1);
                   }}
                   className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                    activeCategory === index
+                    activeCategory === category._id
                       ? 'bg-green-600 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -113,6 +111,14 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
             {/* Pagination */}
             {!showViewAll && totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mb-6">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                   <button
                     key={page}
@@ -126,6 +132,14 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
                     {page}
                   </button>
                 ))}
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
             )}
 

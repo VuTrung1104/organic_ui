@@ -32,8 +32,7 @@ export default function LoginPage() {
         if (rememberMe) {
           localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
         }
-        
-        // Lưu flag để hiển thị toast sau khi chuyển trang
+
         localStorage.setItem('showLoginSuccess', 'true');
         window.location.href = '/';
       } else {

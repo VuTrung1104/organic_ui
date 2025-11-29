@@ -50,9 +50,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      // Send OTP to email
       await apiService.sendOTP(formData.email, OTP_TYPES.REGISTER);
-      // Show verify form
       setShowVerifyForm(true);
     } catch (err) {
       const error = err as Error;
@@ -83,7 +81,6 @@ export default function RegisterPage() {
       const error = err as Error;
       let errorMessage = error.message || ERROR_MESSAGES.VERIFY_FAILED;
       
-      // Customize error messages
       if (errorMessage.includes('InvalidOTP') || errorMessage.includes('invalid')) {
         errorMessage = ERROR_MESSAGES.OTP_INVALID;
       } else if (errorMessage.includes('expired')) {

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Leaf, LogOut, User, ChevronDown, Package, Heart } from 'lucide-react';
+import { ShoppingCart, Leaf, LogOut, User, ChevronDown, Package, Heart, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { apiService, type UserProfile } from '../../lib/api';
 import { ERROR_MESSAGES } from '../../lib/constants';
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -125,6 +125,20 @@ export default function Header() {
                       <Heart className="w-4 h-4" />
                       Sản Phẩm Yêu Thích
                     </Link>
+                    {isAdmin && (
+                      <>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <Link
+                          href="/admin"
+                          onClick={() => setShowDropdown(false)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Quản Trị Hệ Thống
+                        </Link>
+                      </>
+                    )}
+                    <div className="border-t border-gray-200 my-1"></div>
                     <button
                       onClick={() => {
                         setShowDropdown(false);

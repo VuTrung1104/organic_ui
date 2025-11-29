@@ -1,21 +1,25 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiService } from '../lib/api';
+import type { UserProfile } from '../lib/types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
+  user: UserProfile | null;
+  isAdmin: boolean;
+  loading: boolean;
   login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(() => {
-    // Initialize state from localStorage
     if (typeof window !== 'undefined') {
       return localStorage.getItem('accessToken');
     }
@@ -27,7 +31,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return false;
   });
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (isAuthenticated && accessToken) {
+        try {
+          const profile = await apiService.getProfile();
+          setUser(profile);
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, [isAuthenticated, accessToken]);
+
+  const isAdmin = user?.role?.name === 'ADMIN' || user?.role?.name === 'admin';
+
+  const refreshUser = async () => {
+    if (isAuthenticated) {
+      try {
+        const profile = await apiService.getProfile();
+        setUser(profile);
+      } catch (error) {
+        console.error('Failed to refresh user profile:', error);
+      }
+    }
+  };
 
   const login = (newAccessToken: string, refreshToken: string) => {
     localStorage.setItem('accessToken', newAccessToken);
@@ -37,23 +75,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Call logout API
     apiService.logout().catch(console.error);
-    
-    // Clear local storage
+
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('rememberMe');
     
     setAccessToken(null);
     setIsAuthenticated(false);
-    
-    // Dùng window.location.href để reload trang hoàn toàn
+    setUser(null);
+
     window.location.href = '/';
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, accessToken, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      accessToken, 
+      user, 
+      isAdmin, 
+      loading, 
+      login, 
+      logout, 
+      refreshUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );
