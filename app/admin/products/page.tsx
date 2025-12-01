@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Edit, Trash2, Search, X, Upload, Image as ImageIcon, Package, ChevronLeft, ChevronRight } from 'lucide-react';
-import { apiService, type Product, type Category } from '../../lib/api';
-import { Toast, ConfirmDialog } from '../../components/ui';
+import { apiService, type Product, type Category } from '@/lib/api';
+import { Toast, ConfirmDialog } from '@/components/ui';
 
 export default function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);

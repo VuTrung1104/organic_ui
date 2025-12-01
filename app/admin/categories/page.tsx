@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
-import { apiService, type Category } from '../../lib/api';
-import { Toast } from '../../components/ui';
+import { apiService, type Category } from '@/lib/api';
+import { Toast } from '@/components/ui';
 
 export default function CategoriesManager() {
   const [categories, setCategories] = useState<Category[]>([]);

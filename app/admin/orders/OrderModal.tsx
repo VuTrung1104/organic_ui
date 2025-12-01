@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, User, Mail, Phone, Calendar, Package } from 'lucide-react';
-import { apiService, type Order } from '../../lib/api';
+import { apiService, type Order } from '@/lib/api';
 
 interface OrderModalProps {
   orderId: string;

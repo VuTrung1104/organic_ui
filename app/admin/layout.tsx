@@ -14,7 +14,7 @@ import {
   X,
   Leaf,
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -38,12 +38,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (mounted && !loading) {
       if (!isAuthenticated) {
-        router.push('/login');
+        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       } else if (!isAdmin) {
         router.push('/');
       }
     }
-  }, [mounted, loading, isAuthenticated, isAdmin, router]);
+  }, [mounted, loading, isAuthenticated, isAdmin, router, pathname]);
 
   if (!mounted || loading) {
     return (

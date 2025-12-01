@@ -14,10 +14,10 @@ import {
   Camera,
   MapPin,
 } from "lucide-react";
-import { apiService, type UserProfile } from "../lib/api";
-import { useAuth } from "../contexts/AuthContext";
-import { Toast } from "../components/ui";
-import { CONFIRM_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "../lib/constants";
+import { apiService, type UserProfile } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { Toast } from "@/components/ui";
+import { CONFIRM_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const router = useRouter();

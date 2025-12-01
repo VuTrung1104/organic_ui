@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Eye, Package } from 'lucide-react';
-import { apiService, type Order } from '../../lib/api';
-import { Toast } from '../../components/ui';
+import { apiService, type Order } from '@/lib/api';
+import { Toast } from '@/components/ui';
 import OrderModal from './OrderModal';
 
 export default function OrdersManager() {

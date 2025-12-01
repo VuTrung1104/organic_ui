@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { apiService } from '@/app/lib/api';
-import type { User } from '@/app/lib/types';
-import { formatCurrency, formatDate } from '@/app/lib/utils/formatters';
-import Toast from '@/app/components/ui/Toast';
+import { apiService } from '@/lib/api';
+import type { User } from '@/lib/types';
+import { formatDate } from '@/lib/utils/formatters';
+import Toast from '@/components/ui/Toast';
 
 export default function AdminUsersPage() {
   const { user, loading } = useAuth();
@@ -68,10 +68,8 @@ export default function AdminUsersPage() {
     try {
       const response = await apiService.getRoles();
       console.log('Roles fetched:', response);
-      // API có thể trả về array trực tiếp hoặc { data: array }
       const rolesData = Array.isArray(response) ? response : (response.data || []);
-      
-      // Nếu API không trả về roles, dùng hardcoded từ database
+
       if (rolesData.length === 0) {
         setRoles([
           { id: '68ca389644f64c447986bbb1', name: 'ADMIN' },
@@ -82,7 +80,6 @@ export default function AdminUsersPage() {
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
-      // Fallback to hardcoded roles
       setRoles([
         { id: '68ca389644f64c447986bbb1', name: 'ADMIN' },
         { id: '68ca389644f64c447986bbb2', name: 'CLIENT' }
@@ -106,7 +103,6 @@ export default function AdminUsersPage() {
   const filterUsers = () => {
     let filtered = [...users];
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(
         (user) =>
@@ -115,7 +111,6 @@ export default function AdminUsersPage() {
       );
     }
 
-    // Filter by status
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter((user) => user.status === statusFilter);
     }
@@ -192,8 +187,8 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (roleName: string) => {
     const roleConfig = {
-      ADMIN: { label: 'Quản trị', class: 'bg-purple-100 text-purple-800' },
-      USER: { label: 'Người dùng', class: 'bg-blue-100 text-blue-800' },
+      ADMIN: { label: 'Admin', class: 'bg-purple-100 text-purple-800' },
+      USER: { label: 'User', class: 'bg-blue-100 text-blue-800' },
     };
 
     const config = roleConfig[roleName as keyof typeof roleConfig] || roleConfig.USER;
@@ -299,7 +294,7 @@ export default function AdminUsersPage() {
                         >
                           {roles.map((role) => (
                             <option key={role.id} value={role.id}>
-                              {role.name === 'ADMIN' ? 'Quản trị' : 'Người dùng'}
+                              {role.name === 'ADMIN' ? 'Admin' : 'User'}
                             </option>
                           ))}
                         </select>

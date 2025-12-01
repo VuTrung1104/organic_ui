@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, MapPin, Edit2, Trash2, Check } from 'lucide-react';
-import { apiService, type Address } from '../../lib/api';
-import { useAuth } from '../../contexts/AuthContext';
-import { Toast } from '../../components/ui';
+import { apiService, type Address } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { Toast } from '@/components/ui';
 
 export default function AddressesPage() {
   const router = useRouter();
