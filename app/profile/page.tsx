@@ -12,6 +12,7 @@ import {
   X,
   Upload,
   Camera,
+  MapPin,
 } from "lucide-react";
 import { apiService, type UserProfile } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -36,6 +37,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     fullname: "",
     phoneNumber: "",
+    address: "",
   });
 
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function ProfilePage() {
           setFormData({
             fullname: data.fullname,
             phoneNumber: data.phoneNumber || "",
+            address: data.address || "",
           });
         }
       } catch (error) {
@@ -191,6 +194,7 @@ export default function ProfilePage() {
       setFormData({
         fullname: profile.fullname,
         phoneNumber: profile.phoneNumber || "",
+        address: profile.address || "",
       });
     }
     setAvatarPreview(null);
@@ -303,6 +307,18 @@ export default function ProfilePage() {
 
             {/* Profile Info */}
             <div className="space-y-6">
+              {/* Role */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vai trò
+                </label>
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <span className="text-green-700 font-medium">
+                    {profile.role.name}
+                  </span>
+                </div>
+              </div>
+
               {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -352,7 +368,7 @@ export default function ProfilePage() {
                       setFormData({ ...formData, phoneNumber: e.target.value })
                     }
                     placeholder="Nhập số điện thoại"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 placeholder:text-gray-600 placeholder:opacity-100"
                   />
                 ) : (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -363,19 +379,23 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vai trò
-                </label>
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-green-700 font-medium">
-                    {profile.role.name}
-                  </span>
-                </div>
-              </div>
             </div>
+
+            {/* Addresses Link */}
+            {!editing && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => router.push('/profile/addresses')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                    <span className="text-gray-900 font-medium">Quản lý địa chỉ</span>
+                  </div>
+                  <span className="text-gray-400">›</span>
+                </button>
+              </div>
+            )}
 
             {/* Action Buttons */}
             {editing && (

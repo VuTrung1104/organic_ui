@@ -39,15 +39,32 @@ export interface CartItem {
 // Order Types
 export interface Order {
   _id: string;
-  orderItems: {
-    productId: string;
-    productName: string;
-    quantity: number;
-    price: number;
-  }[];
+  id: string;
+  userId: {
+    id: string;
+    email: string;
+    fullname: string;
+    phoneNumber?: string;
+  };
   totalAmount: number;
-  status: string;
+  itemsCount?: number;
+  status: 'PENDING' | 'CONFIRMED' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED';
+  paymentMethod: 'COD' | 'MOMO' | 'BANK_TRANSFER';
+  fullname?: string;
+  phoneNumber?: string;
+  addressLine?: string;
+  ward?: string;
+  district?: string;
+  city?: string;
+  orderItems: OrderItem[];
   createdAt: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
 }
 
 // User Types
@@ -57,10 +74,43 @@ export interface UserProfile {
   fullname: string;
   phoneNumber?: string;
   avatar?: string;
+  address?: string;
   role: {
     _id: string;
     name: string;
   };
+}
+
+export interface User {
+  id: string;
+  email: string;
+  fullname: string;
+  phoneNumber: string;
+  avatar?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'SUSPENDED';
+  isLocked: boolean;
+  lockExpirationDate?: string | null;
+  role: {
+    id: string;
+    name: string;
+  };
+  roleId: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface Address {
+  id: string;
+  userId: string;
+  fullname: string;
+  phoneNumber: string;
+  addressLine: string;
+  ward?: string;
+  district?: string;
+  city: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // API Response Types

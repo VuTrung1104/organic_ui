@@ -29,9 +29,9 @@ export default function Toast({ message, type, onClose, duration = 3000 }: Toast
         }`}
       >
         {type === 'success' ? (
-          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+          <CheckCircle className="w-6 h-6 text-green-600 shrink-0" />
         ) : (
-          <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+          <XCircle className="w-6 h-6 text-red-600 shrink-0" />
         )}
         <p
           className={`font-medium ${

@@ -203,6 +203,30 @@ class ApiService {
     }
   }
 
+  async resetPassword(data: {
+    email: string;
+    code: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  }
+
   // Cart APIs
   async addToCart(productId: string, quantity: number = 1): Promise<void> {
     try {
@@ -478,9 +502,9 @@ class ApiService {
     }
   }
 
-  async resetPassword(data: { email: string; code: string; password: string; confirmPassword: string }): Promise<void> {
+  async resetPassword(data: { email: string; code: string; newPassword: string; confirmNewPassword: string }): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.AUTH.RESET_PASSWORD}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.AUTH.FORGOT_PASSWORD}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -662,7 +686,7 @@ class ApiService {
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-      const url = `${this.baseUrl}/api/v1/order/pagination${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${this.baseUrl}/api/v1/order/admin/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await fetch(url, {
         headers: this.getAuthHeaders(),
       });
@@ -690,6 +714,193 @@ class ApiService {
       }
     } catch (error) {
       console.error('Delete order error:', error);
+      throw error;
+    }
+  }
+
+  // User Management APIs
+  async getAllUsers(): Promise<{ data: User[] }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/auth`, {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      // Map id to _id for consistency
+      if (result.data) {
+        result.data = result.data.map((user: any) => ({
+          ...user,
+          _id: user.id || user._id,
+        }));
+      }
+      return result;
+    } catch (error) {
+      console.error('Get all users error:', error);
+      throw error;
+    }
+  }
+
+  async lockUser(userId: string, body: { reason?: string; durationMinutes?: number }): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/auth/${userId}/lock`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Lock user error:', error);
+      throw error;
+    }
+  }
+
+  async unlockUser(userId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/auth/${userId}/unlock`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Unlock user error:', error);
+      throw error;
+    }
+  }
+
+  async getRoles(): Promise<Array<{ id: string; name: string }>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/role?skip=0&take=100`, {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Get roles error:', error);
+      throw error;
+    }
+  }
+
+  async updateUserRole(userId: string, roleId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/role/users/${userId}/roles`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ roleId }),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Update user role error:', error);
+      throw error;
+    }
+  }
+
+  // Address APIs
+  async getAddresses(): Promise<{ data: Address[] }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/address`, {
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Get addresses error:', error);
+      throw error;
+    }
+  }
+
+  async createAddress(data: Omit<Address, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<Address> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/address`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Create address error:', error);
+      throw error;
+    }
+  }
+
+  async updateAddress(addressId: string, data: Partial<Omit<Address, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<Address> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/address/${addressId}`, {
+        method: 'PATCH',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Update address error:', error);
+      throw error;
+    }
+  }
+
+  async deleteAddress(addressId: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/address/${addressId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+    } catch (error) {
+      console.error('Delete address error:', error);
+      throw error;
+    }
+  }
+
+  async setDefaultAddress(addressId: string): Promise<Address> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/address/${addressId}/default`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        await handleApiError(response);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Set default address error:', error);
       throw error;
     }
   }

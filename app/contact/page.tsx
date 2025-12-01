@@ -3,7 +3,7 @@ import { ContactSection } from '../components/sections';
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-gray-800">
       <Header />
       <main className="pt-20">
         <ContactSection />

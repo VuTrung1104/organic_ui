@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductCard } from '../ui';
-import { apiService, type Product, type Category } from '../../lib/api';
+import { apiService, type Product } from '../../lib/api';
 
 interface ProductsSectionProps {
   showViewAll?: boolean;
 }
 
 export default function ProductsSection({ showViewAll = false }: ProductsSectionProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -22,15 +20,9 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
     const fetchData = async () => {
       setLoading(true);
       try {
-        const categoriesData = await apiService.fetchCategories();
-        setCategories(categoriesData);
-
-        const categoryId = activeCategory !== 'all' ? activeCategory : undefined;
-          
         const productsData = await apiService.fetchProducts({ 
           page: currentPage,
           limit: 10,
-          category: categoryId,
           includeDeleted: false
         });
 
@@ -45,7 +37,7 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
     };
 
     fetchData();
-  }, [activeCategory, currentPage]);
+  }, [currentPage]);
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
@@ -54,44 +46,9 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Sản Phẩm Của Chúng Tôi
           </h2>
-          <p className="text-base text-gray-600 max-w-3xl mx-auto mb-6">
+          <p className="text-base text-gray-600 max-w-3xl mx-auto">
             Khám phá bộ sưu tập rau củ quả tươi ngon, được chọn lọc kỹ càng từ các trang trại hữu cơ
           </p>
-          
-          {/* Category Filter */}
-          <div className="flex justify-center gap-3 flex-wrap">
-            <button
-              onClick={() => {
-                setActiveCategory('all');
-                setCurrentPage(1);
-              }}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                activeCategory === 'all'
-                  ? 'bg-green-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Tất Cả
-            </button>
-            {categories.map((category) => {
-              return (
-                <button
-                  key={category._id}
-                  onClick={() => {
-                    setActiveCategory(category._id);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                    activeCategory === category._id
-                      ? 'bg-green-600 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Product Grid */}

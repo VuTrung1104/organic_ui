@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Trash2, Eye, Package, Clock, CheckCircle } from 'lucide-react';
+import { Search, Eye, Package } from 'lucide-react';
 import { apiService, type Order } from '../../lib/api';
 import { Toast } from '../../components/ui';
+import OrderModal from './OrderModal';
 
 export default function OrdersManager() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -41,29 +43,14 @@ export default function OrdersManager() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
-      PENDING: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Chờ Xử Lý' },
-      PROCESSING: { color: 'bg-blue-100 text-blue-800', icon: Package, label: 'Đang Xử Lý' },
-      COMPLETED: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Hoàn Thành' },
-      CANCELLED: { color: 'bg-red-100 text-red-800', icon: Trash2, label: 'Đã Hủy' },
-    };
-
-    const config = statusConfig[status] || statusConfig.PENDING;
-    const Icon = config.icon;
-
-    return (
-      <span className={`px-3 py-1 inline-flex items-center gap-1 text-xs leading-5 font-semibold rounded-full ${config.color}`}>
-        <Icon className="w-3 h-3" />
-        {config.label}
-      </span>
-    );
-  };
-
-  const filteredOrders = orders.filter((order) =>
-    order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.userId.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter((order) => {
+    const orderId = order.id?.toLowerCase() || '';
+    const userEmail = order.userId?.email?.toLowerCase() || '';
+    const userName = order.userId?.fullname?.toLowerCase() || '';
+    const searchLower = searchTerm.toLowerCase();
+    
+    return orderId.includes(searchLower) || userEmail.includes(searchLower) || userName.includes(searchLower);
+  });
 
   if (loading) {
     return (
@@ -91,10 +78,10 @@ export default function OrdersManager() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm đơn hàng (ID hoặc Email)..."
+              placeholder="Tìm kiếm đơn hàng (ID hoặc Email)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600"
             />
           </div>
         </div>
@@ -118,58 +105,47 @@ export default function OrdersManager() {
                     Tổng Tiền
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng Thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ngày Đặt
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao Tác
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrders.map((order) => (
-                  <tr key={order._id} className="hover:bg-gray-50">
+                  <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-mono text-gray-900">
-                        #{order._id.slice(-8)}
+                        #{order.id.slice(-8)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="font-medium text-gray-900">{order.userId.fullname}</div>
-                        <div className="text-gray-500">{order.userId.email}</div>
+                        <div className="font-medium text-gray-900">{order.userId?.fullname || 'N/A'}</div>
+                        <div className="text-gray-500">{order.userId?.email || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {order.items.length} sản phẩm
+                        {order.itemsCount || 0} sản phẩm
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">
-                        {order.totalPrice.toLocaleString('vi-VN')}đ
+                        {order.totalAmount.toLocaleString('vi-VN')}đ
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('vi-VN')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <button
-                        onClick={() => window.open(`/orders/${order._id}`, '_blank')}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        onClick={() => setSelectedOrderId(order.id)}
+                        className="text-blue-600 hover:text-blue-900 inline-flex items-center justify-center"
+                        title="Xem chi tiết"
                       >
-                        <Eye className="w-5 h-5 inline" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(order._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-5 h-5 inline" />
+                        <Eye className="w-5 h-5" />
                       </button>
                     </td>
                   </tr>
@@ -188,6 +164,13 @@ export default function OrdersManager() {
           </div>
         )}
       </div>
+
+      {selectedOrderId && (
+        <OrderModal
+          orderId={selectedOrderId}
+          onClose={() => setSelectedOrderId(null)}
+        />
+      )}
     </>
   );
 }

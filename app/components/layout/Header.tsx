@@ -8,42 +8,13 @@ import { apiService, type UserProfile } from '../../lib/api';
 import { ERROR_MESSAGES } from '../../lib/constants';
 
 export default function Header() {
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, user, loading } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (!isAuthenticated) {
-      setProfile(null);
-      return;
-    }
-
-    let isActive = true;
-
-    apiService
-      .getProfile()
-      .then((data) => {
-        if (isActive) {
-          setProfile(data ?? null);
-        }
-      })
-      .catch((error) => {
-        console.error(ERROR_MESSAGES.PROFILE_LOAD_FAILED, error);
-        if (isActive) {
-          setProfile(null);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [mounted, isAuthenticated]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
@@ -78,7 +49,12 @@ export default function Header() {
               <ShoppingCart className="w-6 h-6" />
             </Link>
             {!mounted ? (
-              <div className="w-32 h-11" />
+              <Link 
+                href="/login"
+                className="px-6 py-2.5 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition"
+              >
+                Đăng Nhập
+              </Link>
             ) : isAuthenticated ? (
               <div className="relative">
                 <button
@@ -86,10 +62,10 @@ export default function Header() {
                   className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition"
                 >
                   <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center overflow-hidden">
-                    {profile?.avatar ? (
+                    {user?.avatar ? (
                       <img
-                        src={profile.avatar}
-                        alt={profile.fullname || 'Avatar'}
+                        src={user.avatar}
+                        alt={user.fullname || 'Avatar'}
                         className="w-full h-full object-cover"
                       />
                     ) : (

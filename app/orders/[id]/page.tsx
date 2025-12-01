@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Package, Calendar, MapPin, Phone, User } from 'lucide-react';
 import { apiService, type Order } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
-import Header from '../../components/Header';
+import { Header } from '../../components/layout';
 
 export default function OrderDetailPage() {
   const params = useParams();

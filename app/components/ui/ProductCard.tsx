@@ -58,7 +58,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-2 mb-4">
-          <p className="text-green-600 font-bold text-2xl">
+          <p className="text-green-600 font-bold text-base">
             {finalPrice.toLocaleString('vi-VN')}đ/kg
           </p>
           {product.discount && product.discount > 0 && (
@@ -68,7 +68,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
         <button className="w-full px-6 py-3 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition">
-          Thêm Vào Giỏ
+          Thêm vào giỏ
         </button>
       </div>
     </Link>
