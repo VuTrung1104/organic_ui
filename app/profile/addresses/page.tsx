@@ -6,15 +6,17 @@ import { ArrowLeft, Plus, MapPin, Edit2, Trash2, Check } from 'lucide-react';
 import { apiService, type Address } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Toast } from '@/components/ui';
+import { useToast } from '@/lib/hooks';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '@/lib/constants';
 
 export default function AddressesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { toast, showToast } = useToast();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [formData, setFormData] = useState({
     fullname: '',
     phoneNumber: '',
@@ -40,15 +42,10 @@ export default function AddressesPage() {
       setAddresses(response.data || []);
     } catch (error) {
       console.error('Error fetching addresses:', error);
-      showToast('Không thể tải danh sách địa chỉ', 'error');
+      showToast(ERROR_MESSAGES.ADDRESS_FETCH_FAILED, 'error');
     } finally {
       setLoading(false);
     }
-  };
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
   };
 
   const resetForm = () => {
@@ -84,40 +81,40 @@ export default function AddressesPage() {
     try {
       if (editingId) {
         await apiService.updateAddress(editingId, formData);
-        showToast('Cập nhật địa chỉ thành công', 'success');
+        showToast(SUCCESS_MESSAGES.ADDRESS_UPDATE_SUCCESS, 'success');
       } else {
         await apiService.createAddress(formData);
-        showToast('Thêm địa chỉ thành công', 'success');
+        showToast(SUCCESS_MESSAGES.ADDRESS_CREATE_SUCCESS, 'success');
       }
       resetForm();
       fetchAddresses();
     } catch (error) {
       console.error('Error saving address:', error);
-      showToast('Không thể lưu địa chỉ', 'error');
+      showToast(ERROR_MESSAGES.ADDRESS_SAVE_FAILED, 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+    if (!confirm(CONFIRM_MESSAGES.DELETE_ADDRESS)) return;
     
     try {
       await apiService.deleteAddress(id);
-      showToast('Xóa địa chỉ thành công', 'success');
+      showToast(SUCCESS_MESSAGES.ADDRESS_DELETE_SUCCESS, 'success');
       fetchAddresses();
     } catch (error) {
       console.error('Error deleting address:', error);
-      showToast('Không thể xóa địa chỉ', 'error');
+      showToast(ERROR_MESSAGES.ADDRESS_DELETE_FAILED, 'error');
     }
   };
 
   const handleSetDefault = async (id: string) => {
     try {
       await apiService.setDefaultAddress(id);
-      showToast('Đã đặt làm địa chỉ mặc định', 'success');
+      showToast(SUCCESS_MESSAGES.ADDRESS_SET_DEFAULT_SUCCESS, 'success');
       fetchAddresses();
     } catch (error) {
       console.error('Error setting default:', error);
-      showToast('Không thể đặt địa chỉ mặc định', 'error');
+      showToast(ERROR_MESSAGES.ADDRESS_SET_DEFAULT_FAILED, 'error');
     }
   };
 
@@ -131,7 +128,7 @@ export default function AddressesPage() {
 
   return (
     <>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => {}} />}
       
       <div className="min-h-screen pt-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -22,7 +22,7 @@ export default function ContactSection() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Hotline</h2>
                 <p className="text-gray-600 mt-1">
-                  00356405022 (7:00 - 21:00)
+                  0356xxxxxx (7:00 - 21:00)
                 </p>
               </div>
             </div>

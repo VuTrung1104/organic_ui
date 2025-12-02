@@ -17,19 +17,17 @@ import {
 import { apiService, type UserProfile } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Toast } from "@/components/ui";
+import { useToast } from "@/lib/hooks";
 import { CONFIRM_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { toast, showToast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -70,15 +68,12 @@ export default function ProfilePage() {
 
   const handleAvatarChange = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      setToast({ message: "Vui lòng chọn file ảnh!", type: "error" });
+      showToast(ERROR_MESSAGES.INVALID_IMAGE_FILE, "error");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setToast({
-        message: "Kích thước ảnh không được vượt quá 5MB!",
-        type: "error",
-      });
+      showToast(ERROR_MESSAGES.IMAGE_TOO_LARGE, "error");
       return;
     }
 
@@ -120,12 +115,12 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Update profile info (fullname, phone)
+      // Update profile info
       const updated = await apiService.updateProfile(formData);
       if (updated) {
         setProfile(updated);
 
-        // If there's a new avatar, upload it
+        // Upload avatar
         if (avatarFile) {
           const formDataUpload = new FormData();
           formDataUpload.append("file", avatarFile);
@@ -165,25 +160,22 @@ export default function ProfilePage() {
                 response.status,
                 await response.text()
               );
-              setToast({ message: "Cập nhật ảnh thất bại!", type: "error" });
+              showToast(ERROR_MESSAGES.AVATAR_UPDATE_FAILED, "error");
             }
           } catch (error) {
             console.error("Avatar upload error:", error);
-            setToast({ message: "Cập nhật ảnh thất bại!", type: "error" });
+            showToast(ERROR_MESSAGES.AVATAR_UPDATE_FAILED, "error");
           }
         }
 
         setEditing(false);
         setAvatarPreview(null);
         setAvatarFile(null);
-        setToast({
-          message: "Cập nhật thông tin thành công!",
-          type: "success",
-        });
+        showToast(SUCCESS_MESSAGES.PROFILE_UPDATE_SUCCESS, "success");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      setToast({ message: "Cập nhật thông tin thất bại!", type: "error" });
+      showToast(ERROR_MESSAGES.PROFILE_UPDATE_FAILED, "error");
     } finally {
       setSaving(false);
     }
@@ -224,7 +216,7 @@ export default function ProfilePage() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={() => {}}
         />
       )}
       <div className="min-h-screen pt-20 bg-gray-50">

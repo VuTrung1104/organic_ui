@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
 import { Toast } from '@/components/ui';
+import { useToast } from '@/lib/hooks';
 import { OTP_TYPES, ERROR_MESSAGES, SUCCESS_MESSAGES, DELAYS } from '@/lib/constants';
 
 export default function RegisterPage() {
+  const { toast, showToast } = useToast();
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
@@ -24,7 +26,6 @@ export default function RegisterPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -73,7 +74,7 @@ export default function RegisterPage() {
 
     try {
       await apiService.register(formData);
-      setToast({ message: SUCCESS_MESSAGES.REGISTER_SUCCESS, type: 'success' });
+      showToast(SUCCESS_MESSAGES.REGISTER_SUCCESS, 'success');
       setTimeout(() => {
         router.push('/login');
       }, DELAYS.REDIRECT_AFTER_REGISTER);
@@ -99,7 +100,7 @@ export default function RegisterPage() {
 
     try {
       await apiService.sendOTP(formData.email, OTP_TYPES.REGISTER);
-      setToast({ message: SUCCESS_MESSAGES.OTP_RESENT, type: 'success' });
+      showToast(SUCCESS_MESSAGES.OTP_RESENT, 'success');
     } catch (err) {
       const error = err as Error;
       setError(error.message || ERROR_MESSAGES.RESEND_OTP_FAILED);
@@ -114,7 +115,7 @@ export default function RegisterPage() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={() => {}}
         />
       )}
       <div className="min-h-screen bg-linear-to-br from-green-50 to-green-100 flex items-center justify-center p-4">

@@ -22,8 +22,8 @@ export default function AdminDashboard() {
         ]);
 
         setStats({
-          products: productsRes.totalItems || 0,
-          orders: ordersRes.totalItems || 0,
+          products: productsRes.pagination?.total || 0,
+          orders: ordersRes.pagination?.total || 0,
           categories: categoriesRes.length || 0,
         });
       } catch (error) {
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
           <h3 className="text-xl font-bold text-gray-900">Chào mừng đến Admin Panel</h3>
         </div>
         <p className="text-gray-600">
-          Sử dụng menu bên trái để quản lý sản phẩm, danh mục, đơn hàng và người dùng của bạn.
+          Helloooooooooooooo
         </p>
       </div>
     </div>

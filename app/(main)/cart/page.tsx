@@ -8,18 +8,17 @@ import { apiService, type CartItem } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout';
 import { Toast } from '@/components/ui';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/lib/hooks';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '@/lib/constants';
 
 export default function CartPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { toast, showToast } = useToast();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error';
-  } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -34,9 +33,35 @@ export default function CartPage() {
     setLoading(true);
     try {
       const response = await apiService.getCart({ limit: 100 });
-      setCartItems(response.data);
+
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        setCartItems([]);
+        return;
+      }
+
+      const mappedItems = response.data.map((item: any) => {
+        const product = item.product;
+        const primaryImage = product.images?.find((img: any) => img.isPrimary)?.url || product.images?.[0]?.url;
+        
+        return {
+          _id: item.id || item._id,
+          productId: {
+            _id: product.id || product._id,
+            name: product.name,
+            price: product.price,
+            image: primaryImage,
+            stock: product.quantity || 0,
+            category: product.category?.name || 'Chưa phân loại',
+          },
+          quantity: item.quantity,
+          createdAt: item.createdAt,
+        };
+      });
+      
+      setCartItems(mappedItems);
     } catch (error) {
       console.error(ERROR_MESSAGES.CART_FETCH_FAILED, error);
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
@@ -45,52 +70,71 @@ export default function CartPage() {
   const updateQuantity = async (cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
 
+    setCartItems(prevItems => 
+      prevItems.map(item => 
+        item._id === cartItemId 
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+
     setUpdating(cartItemId);
     try {
       await apiService.updateCartItem(cartItemId, newQuantity);
-      await fetchCart();
     } catch (error) {
       console.error('Error updating quantity:', error);
-      setToast({ message: ERROR_MESSAGES.CART_UPDATE_FAILED, type: 'error' });
+      showToast(ERROR_MESSAGES.CART_UPDATE_FAILED, 'error');
+      await fetchCart();
     } finally {
       setUpdating(null);
     }
   };
 
-  const removeItem = async (cartItemId: string) => {
-    if (!confirm(CONFIRM_MESSAGES.REMOVE_CART_ITEM)) return;
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
-    setUpdating(cartItemId);
+  const handleRemoveClick = (cartItemId: string) => {
+    setItemToRemove(cartItemId);
+  };
+
+  const confirmRemove = async () => {
+    if (!itemToRemove) return;
+
+    setUpdating(itemToRemove);
     try {
-      await apiService.removeCartItem(cartItemId);
+      await apiService.removeCartItem(itemToRemove);
       await fetchCart();
+      showToast(SUCCESS_MESSAGES.CART_ITEM_REMOVED, 'success');
     } catch (error) {
       console.error('Error removing item:', error);
-      setToast({ message: ERROR_MESSAGES.CART_REMOVE_FAILED, type: 'error' });
+      showToast(ERROR_MESSAGES.CART_REMOVE_FAILED, 'error');
     } finally {
       setUpdating(null);
+      setItemToRemove(null);
     }
   };
 
   const handleCheckout = async () => {
-    if (cartItems.length === 0) {
-      setToast({ message: ERROR_MESSAGES.CART_EMPTY, type: 'error' });
+    if (!cartItems || cartItems.length === 0) {
+      showToast(ERROR_MESSAGES.CART_EMPTY, 'error');
       return;
     }
 
     try {
-      const order = await apiService.checkoutFromCart();
-      setToast({ message: SUCCESS_MESSAGES.CHECKOUT_SUCCESS, type: 'success' });
+      const result = await apiService.checkoutFromCart();
+      showToast(SUCCESS_MESSAGES.CHECKOUT_SUCCESS, 'success');
+
+      setCartItems([]);
+      
       setTimeout(() => {
-        router.push(`/orders/${order._id}`);
+        router.push('/profile/orders');
       }, 1500);
     } catch (error) {
       console.error('Error during checkout:', error);
-      setToast({ message: ERROR_MESSAGES.CHECKOUT_FAILED, type: 'error' });
+      showToast(ERROR_MESSAGES.CHECKOUT_FAILED, 'error');
     }
   };
 
-  const totalAmount = cartItems.reduce(
+  const totalAmount = (cartItems || []).reduce(
     (sum, item) => sum + item.productId.price * item.quantity,
     0
   );
@@ -99,7 +143,7 @@ export default function CartPage() {
     return (
       <>
         <Header />
-        <div className="min-h-screen pt-20 flex items-center justify-center">
+        <div className="min-h-screen pt-20 bg-gray-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
       </>
@@ -113,28 +157,24 @@ export default function CartPage() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={() => {}}
         />
       )}
       <div className="min-h-screen pt-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                <ArrowLeft className="w-6 h-6" />
-              </button>
-              <h1 className="text-3xl font-bold text-gray-900">Giỏ Hàng</h1>
-            </div>
-            <p className="text-gray-600">
-              {cartItems.length} sản phẩm
-            </p>
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="p-1.5 bg-white hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors shadow-sm hover:shadow-md border border-gray-200"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">Các Sản Phẩm Trong Giỏ</h1>
           </div>
+          <hr className="border-gray-300 mb-6" />
 
-          {cartItems.length === 0 ? (
+          {!cartItems || cartItems.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
               <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -157,69 +197,68 @@ export default function CartPage() {
                 {cartItems.map((item) => (
                   <div
                     key={item._id}
-                    className="bg-white rounded-xl shadow-sm p-6 flex gap-4"
+                    className="bg-white rounded-xl shadow-sm p-6 flex gap-6 items-center"
                   >
                     {/* Product Image */}
-                    <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <div className="relative w-36 h-36 shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-gray-100">
                       {item.productId.image ? (
                         <Image
                           src={item.productId.image}
                           alt={item.productId.name}
                           fill
                           className="object-cover"
-                          sizes="96px"
+                          sizes="144px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="w-8 h-8 text-gray-300" />
-                        </div>
+                        <span className="text-3xl font-bold text-gray-700">
+                          {item.productId.name.substring(0, 3)}
+                        </span>
                       )}
                     </div>
 
                     {/* Product Info */}
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">
                         {item.productId.name}
                       </h3>
-                      <p className="text-green-600 font-bold text-xl">
-                        {item.productId.price.toLocaleString('vi-VN')}đ
+                      <p className="text-gray-600 mb-2">
+                        {item.productId.category} | Đơn giá: {item.productId.price.toLocaleString('vi-VN')} đ/kg
                       </p>
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex flex-col items-end justify-between">
-                      <button
-                        onClick={() => removeItem(item._id)}
-                        disabled={updating === item._id}
-                        className="text-red-600 hover:text-red-700 transition p-2"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-
-                      <div className="flex items-center gap-2">
+                      
+                      {/* Quantity Controls */}
+                      <div className="inline-flex items-center gap-0 border border-gray-300 rounded-full overflow-hidden">
                         <button
                           onClick={() => updateQuantity(item._id, item.quantity - 1)}
                           disabled={updating === item._id || item.quantity <= 1}
-                          className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
+                          className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50 text-gray-600"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        <span className="w-12 text-center font-semibold">
+                        <span className="w-12 text-center font-semibold text-base text-gray-600">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item._id, item.quantity + 1)}
                           disabled={updating === item._id}
-                          className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
+                          className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50 text-gray-600"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
-                      <p className="text-lg font-bold text-gray-900">
-                        {(item.productId.price * item.quantity).toLocaleString('vi-VN')}đ
+                      <p className="text-green-600 font-bold text-xl mt-3">
+                        {(item.productId.price * item.quantity).toLocaleString('vi-VN')} đ
                       </p>
                     </div>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleRemoveClick(item._id)}
+                      disabled={updating === item._id}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 transition p-3 rounded-lg"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -242,7 +281,7 @@ export default function CartPage() {
                     </div>
                     <div className="border-t pt-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold">Tổng cộng</span>
+                        <span className="text-lg text-gray-700 font-semibold">Tổng cộng</span>
                         <span className="text-2xl font-bold text-green-600">
                           {totalAmount.toLocaleString('vi-VN')}đ
                         </span>
@@ -269,6 +308,17 @@ export default function CartPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!itemToRemove}
+        title="Xóa sản phẩm"
+        message={CONFIRM_MESSAGES.REMOVE_CART_ITEM}
+        onConfirm={confirmRemove}
+        onCancel={() => setItemToRemove(null)}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        type="danger"
+      />
     </>
   );
 }

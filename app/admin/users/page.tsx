@@ -53,7 +53,6 @@ export default function AdminUsersPage() {
     try {
       setIsLoading(true);
       const response = await apiService.getAllUsers();
-      console.log('Users fetched:', response.data);
       setUsers(response.data || []);
       setFilteredUsers(response.data || []);
     } catch (error) {
@@ -67,7 +66,6 @@ export default function AdminUsersPage() {
   const fetchRoles = async () => {
     try {
       const response = await apiService.getRoles();
-      console.log('Roles fetched:', response);
       const rolesData = Array.isArray(response) ? response : (response.data || []);
 
       if (rolesData.length === 0) {
@@ -129,7 +127,7 @@ export default function AdminUsersPage() {
     try {
       await apiService.lockUser(lockDialog.userId, {
         reason: lockReason,
-        durationMinutes: 525600, // 1 year
+        durationMinutes: 525600,
       });
       showToast('Khóa tài khoản thành công', 'success');
       setLockDialog(null);

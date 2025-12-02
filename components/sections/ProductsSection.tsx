@@ -37,14 +37,14 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
       try {
         const productsData = await apiService.fetchProducts({ 
           page: currentPage,
-          limit: 10,
+          limit: 15,
           category: selectedCategory || undefined,
           includeDeleted: false
         });
 
         setProducts(productsData.data);
         setTotal(productsData.pagination?.total || productsData.total || 0);
-        setTotalPages(productsData.pagination?.totalPages || Math.ceil((productsData.pagination?.total || productsData.total || 0) / 10));
+        setTotalPages(productsData.pagination?.totalPages || Math.ceil((productsData.pagination?.total || productsData.total || 0) / 15));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

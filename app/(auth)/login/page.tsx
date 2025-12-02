@@ -7,18 +7,19 @@ import Link from 'next/link';
 import { apiService } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Toast } from '@/components/ui';
+import { useToast } from '@/lib/hooks';
 import { ERROR_MESSAGES, STORAGE_KEYS } from '@/lib/constants';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
+  const { toast, showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,12 +37,10 @@ export default function LoginPage() {
           localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
         }
 
-        // Only show success toast if redirecting to home
         if (redirectUrl === '/') {
           localStorage.setItem('showLoginSuccess', 'true');
         }
         
-        // Redirect to the intended page
         window.location.href = redirectUrl;
       } else {
         setLoading(false);
@@ -59,12 +58,11 @@ export default function LoginPage() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={() => {}}
         />
       )}
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">

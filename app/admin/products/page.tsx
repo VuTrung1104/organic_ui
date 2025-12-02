@@ -409,8 +409,7 @@ export default function ProductsManager() {
                   const displayImage = productImages.length > 0 
                     ? productImages[0].url || productImages[0] 
                     : product.image;
-                  
-                  // Find category name from categoryId
+
                   const categoryName = (product as any).categoryId 
                     ? categories.find(cat => cat._id === (product as any).categoryId)?.name 
                     : product.category?.name;
@@ -590,13 +589,17 @@ export default function ProductsManager() {
                         Số Lượng
                       </label>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={formData.quantity}
-                        onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          setFormData({ ...formData, quantity: value ? Number(value) : 0 });
+                        }}
                         placeholder="100"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-600"
                         required
-                        min="0"
                       />
                     </div>
                   </div>
@@ -606,13 +609,17 @@ export default function ProductsManager() {
                       Giá Bán
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        setFormData({ ...formData, price: value ? Number(value) : 0 });
+                      }}
                       placeholder="50000"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-600"
                       required
-                      min="0"
                     />
                   </div>
 

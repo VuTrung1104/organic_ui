@@ -17,9 +17,7 @@ export default function OrderModal({ orderId, onClose }: OrderModalProps) {
     const fetchOrderDetail = async () => {
       setLoading(true);
       try {
-        console.log('Fetching order detail for ID:', orderId);
         const data = await apiService.getOrderDetail(orderId);
-        console.log('Order detail received:', data);
         setOrder(data);
       } catch (error) {
         console.error('Error fetching order:', error);

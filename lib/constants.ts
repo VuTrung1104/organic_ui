@@ -82,6 +82,21 @@ export const ERROR_MESSAGES = {
   CART_EMPTY: 'Giỏ hàng trống!',
   CHECKOUT_FAILED: 'Không thể đặt hàng',
   AVATAR_DELETE_FAILED: 'Không thể xóa ảnh đại diện',
+  ADDRESS_FETCH_FAILED: 'Không thể tải danh sách địa chỉ',
+  ADDRESS_SAVE_FAILED: 'Không thể lưu địa chỉ',
+  ADDRESS_DELETE_FAILED: 'Không thể xóa địa chỉ',
+  ADDRESS_SET_DEFAULT_FAILED: 'Không thể đặt địa chỉ mặc định',
+  ORDERS_FETCH_FAILED: 'Không thể tải danh sách đơn hàng',
+  ORDER_DELETE_FAILED: 'Không thể xóa đơn hàng',
+  PASSWORD_TOO_SHORT: 'Mật khẩu phải có ít nhất 6 ký tự',
+  RESET_PASSWORD_FAILED: 'Không thể đặt lại mật khẩu',
+  INVALID_IMAGE_FILE: 'Vui lòng chọn file ảnh!',
+  IMAGE_TOO_LARGE: 'Kích thước ảnh không được vượt quá 5MB!',
+  AVATAR_UPDATE_FAILED: 'Cập nhật ảnh thất bại!',
+  PROFILE_UPDATE_FAILED: 'Cập nhật thông tin thất bại!',
+  CATEGORIES_FETCH_FAILED: 'Không thể tải danh sách danh mục',
+  CATEGORY_SAVE_FAILED: 'Có lỗi xảy ra khi lưu danh mục',
+  CATEGORY_DELETE_FAILED: 'Không thể xóa danh mục',
 } as const;
 
 export const SUCCESS_MESSAGES = {
@@ -90,11 +105,26 @@ export const SUCCESS_MESSAGES = {
   OTP_RESENT: 'Mã OTP mới đã được gửi đến email của bạn!',
   CHECKOUT_SUCCESS: 'Đặt hàng thành công!',
   AVATAR_DELETED: 'Đã xóa ảnh đại diện!',
+  ADDRESS_CREATE_SUCCESS: 'Thêm địa chỉ thành công',
+  ADDRESS_UPDATE_SUCCESS: 'Cập nhật địa chỉ thành công',
+  ADDRESS_DELETE_SUCCESS: 'Xóa địa chỉ thành công',
+  ADDRESS_SET_DEFAULT_SUCCESS: 'Đã đặt làm địa chỉ mặc định',
+  ORDER_DELETE_SUCCESS: 'Xóa đơn hàng thành công!',
+  OTP_SENT: 'Mã OTP đã được gửi đến email của bạn',
+  RESET_PASSWORD_SUCCESS: 'Đặt lại mật khẩu thành công!',
+  PROFILE_UPDATE_SUCCESS: 'Cập nhật thông tin thành công!',
+  CART_ITEM_REMOVED: 'Đã xóa sản phẩm khỏi giỏ hàng',
+  CATEGORY_CREATE_SUCCESS: 'Thêm danh mục thành công!',
+  CATEGORY_UPDATE_SUCCESS: 'Cập nhật danh mục thành công!',
+  CATEGORY_DELETE_SUCCESS: 'Xóa danh mục thành công!',
 } as const;
 
 export const CONFIRM_MESSAGES = {
   REMOVE_CART_ITEM: 'Bạn có chắc muốn xóa sản phẩm này?',
   DELETE_AVATAR: 'Bạn có chắc muốn xóa ảnh đại diện?',
+  DELETE_ADDRESS: 'Bạn có chắc muốn xóa địa chỉ này?',
+  DELETE_ORDER: 'Bạn có chắc muốn xóa đơn hàng này?',
+  DELETE_CATEGORY: 'Bạn có chắc muốn xóa danh mục này? Tất cả sản phẩm trong danh mục sẽ bị ảnh hưởng!',
 } as const;
 
 // UI Delays

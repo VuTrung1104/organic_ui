@@ -4,13 +4,17 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { apiService, type Category } from '@/lib/api';
 import { Toast } from '@/components/ui';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/lib/hooks';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '@/lib/constants';
 
 export default function CategoriesManager() {
+  const { toast, showToast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,7 +31,7 @@ export default function CategoriesManager() {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      setToast({ message: 'Không thể tải danh sách danh mục', type: 'error' });
+      showToast(ERROR_MESSAGES.CATEGORIES_FETCH_FAILED, 'error');
     } finally {
       setLoading(false);
     }
@@ -59,29 +63,35 @@ export default function CategoriesManager() {
       if (editingCategory) {
         const categoryId = (editingCategory as any).id || editingCategory._id;
         await apiService.updateCategory(categoryId, formData);
-        setToast({ message: 'Cập nhật danh mục thành công!', type: 'success' });
+        showToast(SUCCESS_MESSAGES.CATEGORY_UPDATE_SUCCESS, 'success');
       } else {
         await apiService.createCategory(formData);
-        setToast({ message: 'Thêm danh mục thành công!', type: 'success' });
+        showToast(SUCCESS_MESSAGES.CATEGORY_CREATE_SUCCESS, 'success');
       }
       handleCloseModal();
       fetchCategories();
     } catch (error) {
       console.error('Error saving category:', error);
-      setToast({ message: 'Có lỗi xảy ra!', type: 'error' });
+      showToast(ERROR_MESSAGES.CATEGORY_SAVE_FAILED, 'error');
     }
   };
 
-  const handleDelete = async (categoryId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa danh mục này? Tất cả sản phẩm trong danh mục sẽ bị ảnh hưởng!')) return;
+  const handleDeleteClick = (categoryId: string) => {
+    setCategoryToDelete(categoryId);
+  };
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
     
     try {
-      await apiService.deleteCategory(categoryId);
-      setToast({ message: 'Xóa danh mục thành công!', type: 'success' });
+      await apiService.deleteCategory(categoryToDelete);
+      showToast(SUCCESS_MESSAGES.CATEGORY_DELETE_SUCCESS, 'success');
       fetchCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
-      setToast({ message: 'Không thể xóa danh mục!', type: 'error' });
+      showToast(ERROR_MESSAGES.CATEGORY_DELETE_FAILED, 'error');
+    } finally {
+      setCategoryToDelete(null);
     }
   };
 
@@ -96,8 +106,19 @@ export default function CategoriesManager() {
   return (
     <>
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        <Toast message={toast.message} type={toast.type} onClose={() => {}} />
       )}
+
+      <ConfirmDialog
+        isOpen={!!categoryToDelete}
+        title="Xóa danh mục"
+        message={CONFIRM_MESSAGES.DELETE_CATEGORY}
+        onConfirm={confirmDelete}
+        onCancel={() => setCategoryToDelete(null)}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        type="danger"
+      />
 
       <div>
         {/* Header */}
@@ -126,7 +147,7 @@ export default function CategoriesManager() {
                     <Edit className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => handleDelete((category as any).id || category._id)}
+                    onClick={() => handleDeleteClick((category as any).id || category._id)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <Trash2 className="w-5 h-5" />

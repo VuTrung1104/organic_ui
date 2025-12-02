@@ -5,35 +5,32 @@ import { Leaf, ArrowLeft, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { apiService } from '@/lib/api';
 import { Toast } from '@/components/ui';
+import { useToast } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
+import { OTP_TYPES, ERROR_MESSAGES, SUCCESS_MESSAGES, DELAYS } from '@/lib/constants';
 
 type Step = 'email' | 'reset';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const { toast, showToast } = useToast();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await apiService.sendOTP(email, 'FORGOT_PASSWORD');
-      showToast('Mã OTP đã được gửi đến email của bạn', 'success');
+      await apiService.sendOTP(email, OTP_TYPES.FORGOT_PASSWORD);
+      showToast(SUCCESS_MESSAGES.OTP_SENT, 'success');
       setStep('reset');
     } catch (error: any) {
-      showToast(error.message || 'Không thể gửi OTP', 'error');
+      showToast(error.message || ERROR_MESSAGES.SEND_OTP_FAILED, 'error');
     } finally {
       setLoading(false);
     }
@@ -43,12 +40,12 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      showToast('Mật khẩu xác nhận không khớp', 'error');
+      showToast(ERROR_MESSAGES.PASSWORD_MISMATCH, 'error');
       return;
     }
 
     if (newPassword.length < 6) {
-      showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+      showToast(ERROR_MESSAGES.PASSWORD_TOO_SHORT, 'error');
       return;
     }
 
@@ -61,12 +58,12 @@ export default function ForgotPasswordPage() {
         newPassword,
         confirmNewPassword: confirmPassword,
       });
-      showToast('Đặt lại mật khẩu thành công!', 'success');
+      showToast(SUCCESS_MESSAGES.RESET_PASSWORD_SUCCESS, 'success');
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, DELAYS.REDIRECT_AFTER_REGISTER);
     } catch (error: any) {
-      showToast(error.message || 'Không thể đặt lại mật khẩu', 'error');
+      showToast(error.message || ERROR_MESSAGES.RESET_PASSWORD_FAILED, 'error');
     } finally {
       setLoading(false);
     }
@@ -78,7 +75,7 @@ export default function ForgotPasswordPage() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={() => {}}
         />
       )}
       <div className="min-h-screen bg-linear-to-br from-green-50 to-green-100 flex items-center justify-center p-4">

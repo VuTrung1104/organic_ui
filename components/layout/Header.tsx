@@ -54,7 +54,9 @@ export default function Header() {
                 Đăng Nhập
               </Link>
             ) : isAuthenticated ? (
-              <div className="relative">
+              <>
+                <div className="h-8 w-px bg-gray-300"></div>
+                <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition"
@@ -126,6 +128,7 @@ export default function Header() {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               <Link 
                 href="/login"

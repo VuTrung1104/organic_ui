@@ -23,7 +23,7 @@ export default function Footer() {
             {/* Social Media Links */}
             <div className="flex gap-3 mt-6">
               <a 
-                href="https://www.facebook.com/Wall.Riin.T/" 
+                href="https://www.facebook.com/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition"
@@ -34,7 +34,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a 
-                href="https://www.instagram.com/vutrung_/" 
+                href="https://www.instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition"
@@ -56,7 +56,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a 
-                href="tel:0356405022" 
+                href="tel:0356xxxxxx" 
                 className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-700 transition"
                 aria-label="Phone"
               >
@@ -102,7 +102,7 @@ export default function Footer() {
               <li className="flex items-center gap-4">
                 <Phone className="w-5 h-5 text-green-500 shrink-0" />
                 <a href="tel:0123456789" className="hover:text-green-500 transition">
-                  0356405022
+                  03564000000
                 </a>
               </li>
               <li className="flex items-center gap-4">

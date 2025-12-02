@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react';
 import { Search, Eye, Package } from 'lucide-react';
 import { apiService, type Order } from '@/lib/api';
 import { Toast } from '@/components/ui';
+import { useToast } from '@/lib/hooks';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, CONFIRM_MESSAGES } from '@/lib/constants';
 import OrderModal from './OrderModal';
 
 export default function OrdersManager() {
+  const { toast, showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,22 +26,22 @@ export default function OrdersManager() {
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      setToast({ message: 'Không thể tải danh sách đơn hàng', type: 'error' });
+      showToast(ERROR_MESSAGES.ORDERS_FETCH_FAILED, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (orderId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa đơn hàng này?')) return;
+    if (!confirm(CONFIRM_MESSAGES.DELETE_ORDER)) return;
     
     try {
       await apiService.deleteOrder(orderId);
-      setToast({ message: 'Xóa đơn hàng thành công!', type: 'success' });
+      showToast(SUCCESS_MESSAGES.ORDER_DELETE_SUCCESS, 'success');
       fetchOrders();
     } catch (error) {
       console.error('Error deleting order:', error);
-      setToast({ message: 'Không thể xóa đơn hàng!', type: 'error' });
+      showToast(ERROR_MESSAGES.ORDER_DELETE_FAILED, 'error');
     }
   };
 
@@ -63,7 +65,7 @@ export default function OrdersManager() {
   return (
     <>
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        <Toast message={toast.message} type={toast.type} onClose={() => {}} />
       )}
 
       <div>

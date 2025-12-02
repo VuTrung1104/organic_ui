@@ -12,7 +12,6 @@ import type {
   PaginatedResponse,
 } from './types';
 
-// Re-export types for backward compatibility
 export type {
   Product,
   Category,
@@ -31,7 +30,7 @@ class ApiService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = API_URL || 'http://localhost:8080';
+    this.baseUrl = API_URL;
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -106,9 +105,25 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data;
+      
+      if (result && result.id) {
+        const primaryImage = result.images?.find((img: any) => img.isPrimary)?.url || result.images?.[0]?.url || '';
+        
+        return {
+          id: result.id,
+          name: result.name,
+          description: result.description,
+          price: result.price,
+          stock: result.quantity || 0,
+          discount: result.discount || 0,
+          image: primaryImage,
+          category: result.category || null,
+          images: result.images || [],
+        };
+      }
+      
+      return null;
     } catch (error) {
-      console.error('Error fetching product:', error);
       return null;
     }
   }
@@ -231,7 +246,7 @@ class ApiService {
     }
   }
 
-  // Cart APIs
+  // Cart API
   async addToCart(productId: string, quantity: number = 1): Promise<void> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CART.ADD}`, {
@@ -267,7 +282,12 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data || { data: [], total: 0, page: 1, limit: 10 };
+
+      if (result.data && result.pagination) {
+        return result;
+      }
+      
+      return result.data || result || { data: [], total: 0, page: 1, limit: 10 };
     } catch (error) {
       console.error('Get cart error:', error);
       return { data: [], total: 0, page: 1, limit: 10 };
@@ -323,7 +343,7 @@ class ApiService {
     }
   }
 
-  // Order APIs
+  // Order API
   async checkoutFromCart(): Promise<{ _id: string }> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.ORDERS.CHECKOUT}`, {
@@ -386,7 +406,7 @@ class ApiService {
     }
   }
 
-  // Wishlist APIs
+  // Wishlist API
   async toggleWishlist(productId: string): Promise<{ isInWishlist: boolean }> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.WISHLIST.TOGGLE(productId)}`, {
@@ -399,7 +419,6 @@ class ApiService {
       }
 
       const result = await response.json();
-      // Handle different response formats
       return result.data || result || { isInWishlist: true };
     } catch (error) {
       console.error('Toggle wishlist error:', error);
@@ -432,7 +451,7 @@ class ApiService {
     }
   }
 
-  // Profile APIs
+  // Profile API
   async getProfile(): Promise<UserProfile | null> {
     try {
       if (typeof window !== 'undefined') {
@@ -723,7 +742,7 @@ class ApiService {
     }
   }
 
-  // User Management APIs
+  // User Management API
   async getAllUsers(): Promise<{ data: User[] }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/auth`, {
@@ -735,7 +754,6 @@ class ApiService {
       }
 
       const result = await response.json();
-      // Map id to _id for consistency
       if (result.data) {
         result.data = result.data.map((user: any) => ({
           ...user,
@@ -817,7 +835,7 @@ class ApiService {
     }
   }
 
-  // Address APIs
+  // Address API
   async getAddresses(): Promise<{ data: Address[] }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/address`, {
