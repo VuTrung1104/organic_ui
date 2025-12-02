@@ -240,7 +240,7 @@ export default function OrderDetailPage() {
                           <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600">
+                          <p className="font-bold text-red-600">
                             {item.price.toLocaleString('vi-VN')}đ
                           </p>
                           <p className="text-sm text-gray-500 mt-1">
@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">Tổng cộng:</span>
-                      <span className="text-2xl font-bold text-green-600">
+                      <span className="text-2xl font-bold text-red-600">
                         {order.totalAmount.toLocaleString('vi-VN')}đ
                       </span>
                     </div>

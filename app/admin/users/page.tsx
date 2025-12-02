@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
               <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Khóa tài khoản</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lý do khóa <span className="text-red-500">*</span>
+                  Lý do khóa <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={lockReason}

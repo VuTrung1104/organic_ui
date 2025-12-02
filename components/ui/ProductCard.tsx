@@ -176,7 +176,7 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
           {/* Price & Cart */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-lg font-bold text-green-600">
+              <p className="text-lg font-bold text-red-400">
                 {finalPrice > 0 ? finalPrice.toLocaleString('vi-VN') : '0'} <span className="text-sm font-normal">đ</span>
               </p>
               {discount > 0 && price > 0 && (

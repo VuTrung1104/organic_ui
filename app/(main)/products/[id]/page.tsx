@@ -276,7 +276,7 @@ export default function ProductDetailPage() {
 
               {/* Price */}
               <div>
-                <span className="text-2xl font-bold text-green-600">
+                <span className="text-2xl font-bold text-red-600">
                   {(product.price * quantity).toLocaleString('vi-VN')}đ
                 </span>
               </div>
@@ -288,7 +288,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-gray-900">Tình trạng:</span>
                 {product.stock && product.stock > 0 ? (
-                  <span className="text-sm font-semibold text-green-600">Còn hàng</span>
+                  <span className="text-sm font-semibold text-red-600">Còn hàng</span>
                 ) : (
                   <span className="text-sm font-semibold text-red-600">Hết hàng</span>
                 )}

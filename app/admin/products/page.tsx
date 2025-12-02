@@ -443,7 +443,7 @@ export default function ProductsManager() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-green-600">
+                      <span className="text-sm font-bold text-red-600">
                         {product.price.toLocaleString('vi-VN')}đ
                       </span>
                     </td>

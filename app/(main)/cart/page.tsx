@@ -119,19 +119,7 @@ export default function CartPage() {
       return;
     }
 
-    try {
-      const result = await apiService.checkoutFromCart();
-      showToast(SUCCESS_MESSAGES.CHECKOUT_SUCCESS, 'success');
-
-      setCartItems([]);
-      
-      setTimeout(() => {
-        router.push('/profile/orders');
-      }, 1500);
-    } catch (error) {
-      console.error('Error during checkout:', error);
-      showToast(ERROR_MESSAGES.CHECKOUT_FAILED, 'error');
-    }
+    router.push('/checkout');
   };
 
   const totalAmount = (cartItems || []).reduce(
@@ -246,7 +234,7 @@ export default function CartPage() {
                         </button>
                       </div>
 
-                      <p className="text-green-600 font-bold text-xl mt-3">
+                      <p className="text-red-600 font-bold text-xl mt-3">
                         {(item.productId.price * item.quantity).toLocaleString('vi-VN')} đ
                       </p>
                     </div>
@@ -282,7 +270,7 @@ export default function CartPage() {
                     <div className="border-t pt-3">
                       <div className="flex justify-between items-center">
                         <span className="text-lg text-gray-700 font-semibold">Tổng cộng</span>
-                        <span className="text-2xl font-bold text-green-600">
+                        <span className="text-2xl font-bold text-red-400">
                           {totalAmount.toLocaleString('vi-VN')}đ
                         </span>
                       </div>
@@ -293,7 +281,7 @@ export default function CartPage() {
                     onClick={handleCheckout}
                     className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold hover:bg-green-700 transition text-lg"
                   >
-                    Đặt Hàng
+                    Thanh Toán
                   </button>
 
                   <button

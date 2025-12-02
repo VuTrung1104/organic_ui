@@ -162,7 +162,7 @@ export default function OrdersPage() {
                     {/* Total Amount */}
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-semibold text-gray-900">Tổng tiền</span>
-                      <span className="text-2xl font-bold text-green-600">
+                      <span className="text-2xl font-bold text-red-400">
                         {order.totalAmount.toLocaleString('vi-VN')}đ
                       </span>
                     </div>

@@ -123,7 +123,7 @@ export default function OrdersPage() {
                         <p className="text-sm text-gray-600 mb-1">
                           Số lượng sản phẩm: <span className="font-semibold">{order.items?.length || 0}</span>
                         </p>
-                        <p className="text-lg font-bold text-green-600">
+                        <p className="text-lg font-bold text-red-600">
                           {order.totalAmount?.toLocaleString('vi-VN')}đ
                         </p>
                       </div>

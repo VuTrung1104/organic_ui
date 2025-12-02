@@ -192,7 +192,7 @@ export default function OrderModal({ orderId, onClose }: OrderModalProps) {
                           <p className="font-semibold text-gray-900">
                             {item.price.toLocaleString('vi-VN')}đ
                           </p>
-                          <p className="text-sm text-green-600 font-semibold mt-1">
+                          <p className="text-sm text-red-600 font-semibold mt-1">
                             = {(item.price * item.quantity).toLocaleString('vi-VN')}đ
                           </p>
                         </div>
@@ -227,12 +227,12 @@ export default function OrderModal({ orderId, onClose }: OrderModalProps) {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Phí vận chuyển</span>
-                    <span className="text-green-600 font-medium">Miễn phí</span>
+                    <span className="text-red-600 font-medium">Miễn phí</span>
                   </div>
                   <div className="border-t border-green-200 pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Tổng cộng</span>
-                      <span className="text-2xl font-bold text-green-600">
+                      <span className="text-2xl font-bold text-red-600">
                         {order.totalAmount.toLocaleString('vi-VN')}đ
                       </span>
                     </div>
