@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductCard } from '../ui';
 import { apiService, type Product, type Category } from '@/lib/api';
@@ -55,6 +55,21 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
     fetchData();
   }, [currentPage, selectedCategory]);
 
+  const handleCategoryChange = useCallback((categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentPage(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const paginationButtons = useMemo(() => {
+    if (totalPages <= 1) return null;
+    
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }, [totalPages]);
+
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
@@ -70,10 +85,7 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
         {/* Category Filter */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
           <button
-            onClick={() => {
-              setSelectedCategory('');
-              setCurrentPage(1);
-            }}
+            onClick={() => handleCategoryChange('')}
             className={`px-6 py-2 rounded-full text-sm font-medium transition ${
               selectedCategory === ''
                 ? 'bg-green-600 text-white'
@@ -85,10 +97,7 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
           {categories.map((category) => (
             <button
               key={category._id}
-              onClick={() => {
-                setSelectedCategory(category._id);
-                setCurrentPage(1);
-              }}
+              onClick={() => handleCategoryChange(category._id)}
               className={`px-6 py-2 rounded-full text-sm font-medium transition ${
                 selectedCategory === category._id
                   ? 'bg-green-600 text-white'
@@ -115,20 +124,20 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
             </div>
 
             {/* Pagination */}
-            {!showViewAll && totalPages > 1 && (
+            {!showViewAll && totalPages > 1 && paginationButtons && (
               <div className="flex items-center justify-center gap-2 mb-6">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                {paginationButtons.map(page => (
                   <button
                     key={page}
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => handlePageChange(page)}
                     className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
                       currentPage === page
                         ? 'bg-green-600 text-white'
@@ -140,7 +149,7 @@ export default function ProductsSection({ showViewAll = false }: ProductsSection
                 ))}
 
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className="p-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >

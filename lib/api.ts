@@ -1,5 +1,6 @@
 import { API_CONFIG, API_ENDPOINTS, STORAGE_KEYS } from './constants';
 import { handleApiError } from './utils/error-handler';
+import { cache, CACHE_KEYS, CACHE_TTL } from './cache';
 import type {
   Product,
   Category,
@@ -53,13 +54,15 @@ class ApiService {
     limit?: number;
     category?: string;
     includeDeleted?: boolean;
+    search?: string;
   }): Promise<PaginatedResponse<Product>> {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
       if (params?.category) queryParams.append('category', params.category);
-      if (params?.includeDeleted !== undefined) queryParams.append('includeDeleted', params.includeDeleted.toString());
+      if (params?.includeDeleted === true) queryParams.append('includeDeleted', 'true');
+      if (params?.search) queryParams.append('search', params.search);
 
       queryParams.append('_t', Date.now().toString());
 
@@ -78,9 +81,11 @@ class ApiService {
       if (result.data && Array.isArray(result.data)) {
         result.data = result.data.map((product: any) => ({
           ...product,
+          id: product.id,
           _id: product.id || product._id,
           category: product.category ? {
             ...product.category,
+            id: product.category.id,
             _id: product.category.id || product.category._id,
           } : product.category,
         }));
@@ -88,7 +93,6 @@ class ApiService {
       
       return result;
     } catch (error) {
-      console.error('Error fetching products:', error);
       throw error;
     }
   }
@@ -105,12 +109,13 @@ class ApiService {
       }
 
       const result = await response.json();
-      
-      if (result && result.id) {
+
+      if (result && (result._id || result.id)) {
+        const productId = result._id || result.id;
         const primaryImage = result.images?.find((img: any) => img.isPrimary)?.url || result.images?.[0]?.url || '';
         
         return {
-          id: result.id,
+          _id: productId,
           name: result.name,
           description: result.description,
           price: result.price,
@@ -148,7 +153,6 @@ class ApiService {
       
       return categories;
     } catch (error) {
-      console.error('Error fetching categories:', error);
       throw error;
     }
   }
@@ -169,7 +173,6 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     }
   }
@@ -198,7 +201,6 @@ class ApiService {
       const result = await response.json();
       return result.data;
     } catch (error) {
-      console.error('Register error:', error);
       throw error;
     }
   }
@@ -217,36 +219,10 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Send OTP error:', error);
       throw error;
     }
   }
 
-  async resetPassword(data: {
-    email: string;
-    code: string;
-    newPassword: string;
-    confirmNewPassword: string;
-  }): Promise<void> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/v1/auth/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-      }
-    } catch (error) {
-      console.error('Reset password error:', error);
-      throw error;
-    }
-  }
-
-  // Cart API
   async addToCart(productId: string, quantity: number = 1): Promise<void> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CART.ADD}`, {
@@ -259,7 +235,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Add to cart error:', error);
       throw error;
     }
   }
@@ -289,7 +264,6 @@ class ApiService {
       
       return result.data || result || { data: [], total: 0, page: 1, limit: 10 };
     } catch (error) {
-      console.error('Get cart error:', error);
       return { data: [], total: 0, page: 1, limit: 10 };
     }
   }
@@ -306,7 +280,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Update cart item error:', error);
       throw error;
     }
   }
@@ -322,7 +295,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Remove cart item error:', error);
       throw error;
     }
   }
@@ -338,17 +310,16 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Clear cart error:', error);
       throw error;
     }
   }
 
-  // Order API
-  async checkoutFromCart(): Promise<{ _id: string }> {
+  async checkoutFromCart(paymentMethod: 'COD' | 'MOMO' | 'BANK_TRANSFER' = 'COD', addressId?: string): Promise<{ orderId: string; totalAmount: number }> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.ORDERS.CHECKOUT}`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
+        body: JSON.stringify({ paymentMethod, addressId }),
       });
 
       if (!response.ok) {
@@ -356,9 +327,29 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data;
+      return result;
     } catch (error) {
-      console.error('Checkout error:', error);
+      throw error;
+    }
+  }
+
+  async createMomoPayment(amount: number, orderInfo: string): Promise<{ orderId: string; requestId: string; payUrl: string; qrCodeUrl: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.PAYMENT.MOMO_CREATE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount, orderInfo }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        await handleApiError(response);
+      }
+
+      return response.json();
+    } catch (error) {
       throw error;
     }
   }
@@ -381,9 +372,21 @@ class ApiService {
       }
 
       const result = await response.json();
+
+      if (result.data && Array.isArray(result.data)) {
+        result.data = result.data.map((order: any) => ({
+          ...order,
+          _id: order.id || order._id,
+          status: order.status || 'PENDING',
+          orderItems: (order.orderItems || []).map((item: any) => ({
+            ...item,
+            _id: item.id || item._id,
+          })),
+        }));
+      }
+      
       return result.data || { data: [], total: 0, page: 1, limit: 10 };
     } catch (error) {
-      console.error('Get orders error:', error);
       return { data: [], total: 0, page: 1, limit: 10 };
     }
   }
@@ -399,14 +402,32 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data;
+      
+      const orderData = result.data || result;
+      
+      if (orderData && orderData.id) {
+        const order = {
+          ...orderData,
+          _id: orderData.id || orderData._id,
+          status: orderData.status || 'PENDING',
+          orderItems: (orderData.items || orderData.orderItems || []).map((item: any) => ({
+            productId: item.product?.id || item.productId,
+            productName: item.product?.name || item.productName,
+            productImage: item.product?.image,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          userId: orderData.user || orderData.userId,
+        };
+        return order;
+      }
+      
+      return null;
     } catch (error) {
-      console.error('Get order detail error:', error);
       return null;
     }
   }
 
-  // Wishlist API
   async toggleWishlist(productId: string): Promise<{ isInWishlist: boolean }> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.WISHLIST.TOGGLE(productId)}`, {
@@ -421,7 +442,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result || { isInWishlist: true };
     } catch (error) {
-      console.error('Toggle wishlist error:', error);
       throw error;
     }
   }
@@ -446,12 +466,10 @@ class ApiService {
       const result = await response.json();
       return result.data || { data: [], total: 0, page: 1, limit: 10 };
     } catch (error) {
-      console.error('Get wishlist error:', error);
       return { data: [], total: 0, page: 1, limit: 10 };
     }
   }
 
-  // Profile API
   async getProfile(): Promise<UserProfile | null> {
     try {
       if (typeof window !== 'undefined') {
@@ -482,7 +500,6 @@ class ApiService {
       if (error instanceof Error && error.message.includes('401')) {
         return null;
       }
-      console.error('Get profile error:', error);
       return null;
     }
   }
@@ -502,7 +519,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      console.error('Update profile error:', error);
       throw error;
     }
   }
@@ -521,7 +537,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Forgot password error:', error);
       throw error;
     }
   }
@@ -540,7 +555,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Reset password error:', error);
       throw error;
     }
   }
@@ -553,15 +567,14 @@ class ApiService {
       });
 
       if (!response.ok) {
-        console.warn('Logout API failed, clearing local tokens anyway');
+        // Logout API failed, clearing local tokens anyway
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      // Ignore logout errors
     }
   }
 
   //Admin
-  // Product Management
   async createProduct(data: {
     name: string;
     description?: string;
@@ -581,9 +594,16 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result;
+
+      cache.clear();
+
+      const product = result.data || result;
+      return {
+        ...product,
+        id: product.id,
+        _id: product.id || product._id,
+      };
     } catch (error) {
-      console.error('Create product error:', error);
       throw error;
     }
   }
@@ -607,16 +627,19 @@ class ApiService {
       }
 
       const result = await response.json();
+
+      cache.delete(CACHE_KEYS.PRODUCT_DETAIL(productId));
+      cache.clear();
+      
       return result.data;
     } catch (error) {
-      console.error('Update product error:', error);
       throw error;
     }
   }
 
-  async deleteProduct(productId: string): Promise<void> {
+  async deleteProduct(id: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/product/${productId}`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/product/${id}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -624,8 +647,10 @@ class ApiService {
       if (!response.ok) {
         await handleApiError(response);
       }
+
+      cache.delete(CACHE_KEYS.PRODUCT_DETAIL(id));
+      cache.clear();
     } catch (error) {
-      console.error('Delete product error:', error);
       throw error;
     }
   }
@@ -641,13 +666,11 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Delete product image error:', error);
       throw error;
     }
   }
 
-  // Category Management
-  async createCategory(data: { name: string; description?: string }): Promise<Category> {
+  async createCategory(data: any): Promise<Category> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/category/create`, {
         method: 'POST',
@@ -660,9 +683,11 @@ class ApiService {
       }
 
       const result = await response.json();
-      return result.data;
+
+      cache.delete(CACHE_KEYS.CATEGORIES);
+      
+      return result.data || result;
     } catch (error) {
-      console.error('Create category error:', error);
       throw error;
     }
   }
@@ -680,16 +705,18 @@ class ApiService {
       }
 
       const result = await response.json();
+
+      cache.delete(CACHE_KEYS.CATEGORIES);
+      
       return result.data;
     } catch (error) {
-      console.error('Update category error:', error);
       throw error;
     }
   }
 
-  async deleteCategory(categoryId: string): Promise<void> {
+  async deleteCategory(id: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/category/${categoryId}`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/category/${id}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders(),
       });
@@ -697,13 +724,13 @@ class ApiService {
       if (!response.ok) {
         await handleApiError(response);
       }
+
+      cache.delete(CACHE_KEYS.CATEGORIES);
     } catch (error) {
-      console.error('Delete category error:', error);
       throw error;
     }
   }
 
-  // Get all orders for admin
   async getAllOrders(params?: { page?: number; limit?: number }): Promise<PaginatedResponse<Order>> {
     try {
       const queryParams = new URLSearchParams();
@@ -719,9 +746,22 @@ class ApiService {
         await handleApiError(response);
       }
 
-      return await response.json();
+      const result = await response.json();
+
+      if (result.data && Array.isArray(result.data)) {
+        result.data = result.data.map((order: any) => ({
+          ...order,
+          _id: order.id || order._id,
+          status: order.status || 'PENDING',
+          orderItems: (order.orderItems || []).map((item: any) => ({
+            ...item,
+            _id: item.id || item._id,
+          })),
+        }));
+      }
+
+      return result;
     } catch (error) {
-      console.error('Get all orders error:', error);
       throw error;
     }
   }
@@ -737,12 +777,10 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Delete order error:', error);
       throw error;
     }
   }
 
-  // User Management API
   async getAllUsers(): Promise<{ data: User[] }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/auth`, {
@@ -762,7 +800,6 @@ class ApiService {
       }
       return result;
     } catch (error) {
-      console.error('Get all users error:', error);
       throw error;
     }
   }
@@ -779,7 +816,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Lock user error:', error);
       throw error;
     }
   }
@@ -795,7 +831,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Unlock user error:', error);
       throw error;
     }
   }
@@ -813,7 +848,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      console.error('Get roles error:', error);
       throw error;
     }
   }
@@ -830,12 +864,10 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Update user role error:', error);
       throw error;
     }
   }
 
-  // Address API
   async getAddresses(): Promise<{ data: Address[] }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/address`, {
@@ -848,7 +880,6 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      console.error('Get addresses error:', error);
       throw error;
     }
   }
@@ -868,7 +899,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      console.error('Create address error:', error);
       throw error;
     }
   }
@@ -888,7 +918,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      console.error('Update address error:', error);
       throw error;
     }
   }
@@ -904,7 +933,6 @@ class ApiService {
         await handleApiError(response);
       }
     } catch (error) {
-      console.error('Delete address error:', error);
       throw error;
     }
   }
@@ -923,7 +951,6 @@ class ApiService {
       const result = await response.json();
       return result.data || result;
     } catch (error) {
-      console.error('Set default address error:', error);
       throw error;
     }
   }

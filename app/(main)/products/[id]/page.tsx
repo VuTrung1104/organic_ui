@@ -8,6 +8,7 @@ import { apiService, type Product } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Toast, ProductCard } from '@/components/ui';
 import { Header, Footer } from '@/components/layout';
+import { formatPrice } from '@/lib/utils/formatters';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -32,6 +33,7 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
         const data = await apiService.fetchProductById(params.id as string);
+        
         if (!data) {
           setError('Không tìm thấy sản phẩm');
         } else {
@@ -144,9 +146,11 @@ export default function ProductDetailPage() {
     );
   }
 
-  const images = product.images && product.images.length > 0 
-    ? product.images.map((img: any) => img.url || img)
-    : [product.image];
+  const images = product.images && Array.isArray(product.images) && product.images.length > 0 
+    ? product.images.map((img: any) => typeof img === 'string' ? img : img.url || img)
+    : product.image 
+      ? [product.image]
+      : ['/images/anhbia.jpg']; 
 
   const generateRating = (id: string) => {
     if (!id) return 4.0;
@@ -172,6 +176,37 @@ export default function ProductDetailPage() {
   const reviewCount = generateReviewCount(product._id);
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
+
+  // Stock status helper
+  const stock = (product as any).quantity ?? product.stock ?? 100;
+  const getStockStatus = () => {
+    if (stock === 0) {
+      return { 
+        text: 'Hết hàng', 
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
+        dotColor: 'bg-red-600',
+        animation: 'animate-pulse'
+      };
+    } else if (stock > 0 && stock <= 10) {
+      return { 
+        text: 'Sắp hết', 
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50',
+        dotColor: 'bg-yellow-500',
+        animation: 'animate-pulse'
+      };
+    } else {
+      return { 
+        text: 'Còn hàng', 
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        dotColor: 'bg-green-500',
+        animation: ''
+      };
+    }
+  };
+  const stockStatus = getStockStatus();
 
   return (
     <>
@@ -277,7 +312,7 @@ export default function ProductDetailPage() {
               {/* Price */}
               <div>
                 <span className="text-2xl font-bold text-red-600">
-                  {(product.price * quantity).toLocaleString('vi-VN')}đ
+                  {formatPrice(product.price * quantity)}
                 </span>
               </div>
 
@@ -285,13 +320,14 @@ export default function ProductDetailPage() {
               <div className="border-t border-gray-200 pt-3"></div>
 
               {/* Stock Status */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-gray-900">Tình trạng:</span>
-                {product.stock && product.stock > 0 ? (
-                  <span className="text-sm font-semibold text-red-600">Còn hàng</span>
-                ) : (
-                  <span className="text-sm font-semibold text-red-600">Hết hàng</span>
-                )}
+                <span 
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${stockStatus.bgColor} ${stockStatus.color} ${stockStatus.animation}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${stockStatus.dotColor} ${stockStatus.animation}`}></span>
+                  {stockStatus.text}
+                </span>
               </div>
 
               {/* Quantity Selector */}

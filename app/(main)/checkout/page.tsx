@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header, Footer } from '@/components/layout';
 import { Toast } from '@/components/ui';
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants';
+import { formatPrice } from '@/lib/utils/formatters';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -54,7 +55,6 @@ export default function CheckoutPage() {
           setSelectedAddress(addressList[0].id);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
         setToast({ message: 'Không thể tải thông tin', type: 'error' });
       } finally {
         setLoading(false);
@@ -70,16 +70,39 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate amount for MoMo (min 1,000 VND, max 50,000,000 VND)
+    if (paymentMethod === 'MOMO') {
+      if (totalAmount < 1000) {
+        setToast({ message: 'Số tiền thanh toán phải ít nhất 1,000 VNĐ', type: 'error' });
+        return;
+      }
+      if (totalAmount > 50000000) {
+        setToast({ message: 'Số tiền thanh toán không được vượt quá 50,000,000 VNĐ', type: 'error' });
+        return;
+      }
+    }
+
     setProcessing(true);
     try {
-      await apiService.checkoutFromCart();
+      const orderResult = await apiService.checkoutFromCart(paymentMethod, selectedAddress);
+
+      if (paymentMethod === 'MOMO') {
+        const momoResult = await apiService.createMomoPayment(
+          totalAmount,
+          `Thanh toán đơn hàng #${orderResult.orderId}`
+        );
+
+        if (momoResult.payUrl) {
+          window.location.href = momoResult.payUrl;
+        }
+        return;
+      }
+
       setToast({ message: SUCCESS_MESSAGES.CHECKOUT_SUCCESS, type: 'success' });
-      
       setTimeout(() => {
         router.push('/orders');
       }, 1500);
     } catch (error) {
-      console.error('Error placing order:', error);
       setToast({ message: ERROR_MESSAGES.CHECKOUT_FAILED, type: 'error' });
       setProcessing(false);
     }
@@ -289,8 +312,8 @@ export default function CheckoutPage() {
                     />
                     <CreditCard className="w-6 h-6 text-blue-600" />
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">Chuyển khoản ngân hàng</p>
-                      <p className="text-sm text-gray-600">Chuyển khoản qua ngân hàng</p>
+                      <p className="font-semibold text-gray-900">VNPay</p>
+                      <p className="text-sm text-gray-600">Thanh toán qua VNPay</p>
                     </div>
                   </label>
                 </div>
@@ -316,7 +339,7 @@ export default function CheckoutPage() {
                             </p>
                           </div>
                           <p className="font-semibold text-gray-900 ml-2">
-                            {((product.price || 0) * item.quantity).toLocaleString('vi-VN')} VND
+                            {formatPrice((product.price || 0) * item.quantity)}
                           </p>
                         </div>
                       );
@@ -330,7 +353,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-700">
                     <span>Tạm tính ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} SP)</span>
-                    <span className="font-semibold">{totalAmount.toLocaleString('vi-VN')} VND</span>
+                    <span className="font-semibold">{formatPrice(totalAmount)}</span>
                   </div>
                   <div className="flex justify-between text-gray-700">
                     <span>Phí Vận chuyển</span>
@@ -340,7 +363,7 @@ export default function CheckoutPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">Tổng thanh toán</span>
                       <span className="text-2xl font-bold text-red-400">
-                        {totalAmount.toLocaleString('vi-VN')} VND
+                        {formatPrice(totalAmount)}
                       </span>
                     </div>
                   </div>
@@ -351,13 +374,30 @@ export default function CheckoutPage() {
                   disabled={processing || !selectedAddress}
                   className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {processing ? 'Đang xử lý...' : 'Hoàn tất Đặt hàng'}
+                  {processing 
+                    ? (paymentMethod === 'MOMO' ? 'Đang tạo mã QR...' : 'Đang xử lý...')
+                    : (paymentMethod === 'MOMO' ? 'Tạo mã QR thanh toán' : 
+                       paymentMethod === 'BANK_TRANSFER' ? 'Xác nhận đặt hàng' : 
+                       'Hoàn tất Đặt hàng')
+                  }
                 </button>
+                
+                {paymentMethod === 'MOMO' && (
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    Quét mã QR MoMo để thanh toán nhanh chóng
+                  </p>
+                )}
+                {paymentMethod === 'BANK_TRANSFER' && (
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    Thông tin chuyển khoản sẽ được gửi qua email
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <Footer />
     </>
   );

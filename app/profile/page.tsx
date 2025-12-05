@@ -18,7 +18,7 @@ import { apiService, type UserProfile } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Toast } from "@/components/ui";
 import { useToast } from "@/lib/hooks";
-import { CONFIRM_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 
 export default function ProfilePage() {
   const router = useRouter();

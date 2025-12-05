@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
   const fetchRoles = async () => {
     try {
       const response = await apiService.getRoles();
-      const rolesData = Array.isArray(response) ? response : (response.data || []);
+      const rolesData = Array.isArray(response) ? response : ((response as any)?.data || []);
 
       if (rolesData.length === 0) {
         setRoles([
@@ -77,7 +77,6 @@ export default function AdminUsersPage() {
         setRoles(rolesData);
       }
     } catch (error) {
-      console.error('Error fetching roles:', error);
       setRoles([
         { id: '68ca389644f64c447986bbb1', name: 'ADMIN' },
         { id: '68ca389644f64c447986bbb2', name: 'CLIENT' }

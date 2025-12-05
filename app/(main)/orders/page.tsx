@@ -24,15 +24,7 @@ export default function OrdersPage() {
       try {
         const response = await apiService.getOrders({ limit: 100 });
         const ordersData = Array.isArray(response) ? response : (response.data || []);
-        
-        const mappedOrders = ordersData.map((order: any) => ({
-          ...order,
-          _id: order.id || order._id,
-          status: order.status || 'PENDING',
-          orderItems: order.orderItems || [],
-        }));
-        
-        setOrders(mappedOrders);
+        setOrders(ordersData);
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
@@ -44,6 +36,7 @@ export default function OrdersPage() {
   }, [isAuthenticated, router]);
 
   const getStatusColor = (status: string) => {
+    if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
     switch (status.toLowerCase()) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -61,6 +54,7 @@ export default function OrdersPage() {
   };
 
   const getStatusText = (status: string) => {
+    if (!status) return 'Chưa xác định';
     switch (status.toLowerCase()) {
       case 'pending':
         return 'Chờ xác nhận';
@@ -130,7 +124,7 @@ export default function OrdersPage() {
                   className="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden"
                 >
                   {/* Order Header */}
-                  <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+                  <div className="bg-linear-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div>

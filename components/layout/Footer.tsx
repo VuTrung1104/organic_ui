@@ -13,7 +13,7 @@ export default function Footer() {
                 <Leaf className="w-7 h-7 text-white" />
               </div>
               <span className="text-2xl font-bold text-white" style={{fontFamily: 'cursive'}}>
-                TrungOrganic
+                EcoFresh
               </span>
             </div>
             <p className="text-base leading-relaxed text-gray-400">
@@ -96,7 +96,7 @@ export default function Footer() {
               <li className="flex items-center gap-4">
                 <MapPin className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                 <span className="leading-relaxed">
-                  Đường 106, Thủ Đức, TP. Hồ Chí Minh
+                  Thủ Đức, TP. Hồ Chí Minh
                 </span>
               </li>
               <li className="flex items-center gap-4">
@@ -108,7 +108,7 @@ export default function Footer() {
               <li className="flex items-center gap-4">
                 <Mail className="w-5 h-5 text-green-500 shrink-0" />
                 <a href="mailto:info@raucutuoi.vn" className="hover:text-green-500 transition">
-                  trung@organic.vn
+                  Trung@EcoFresh.vn
                 </a>
               </li>
               <li className="flex items-center gap-4">
@@ -123,7 +123,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-6 text-start">
-          <p className="text-base">© 2025 TrungOrganic.</p>
+          <p className="text-base">© 2025 EcoFresh.</p>
         </div>
       </div>
     </footer>

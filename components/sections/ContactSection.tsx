@@ -34,7 +34,7 @@ export default function ContactSection() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Email</h2>
                 <p className="text-gray-600 mt-1">
-                  trung@organic.vn
+                  Trung@EcoFresh.vn
                 </p>
               </div>
             </div>

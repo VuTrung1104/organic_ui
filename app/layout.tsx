@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trung Organic - Rau Củ Quả Tươi",
+  title: "EcoFresh - Rau Củ Quả Tươi",
   description: "Cung cấp rau củ quả tươi ngon, sạch sẽ, được trồng theo phương pháp hữu cơ, đảm bảo an toàn cho sức khỏe gia đình bạn",
 };
 

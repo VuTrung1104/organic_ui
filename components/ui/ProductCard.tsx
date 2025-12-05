@@ -1,14 +1,14 @@
 'use client';
 
 import { Leaf, ShoppingCart, Heart } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { apiService } from '@/lib/api';
 import { STORAGE_KEYS } from '@/lib/constants';
 import type { Product } from '@/lib/api';
 import { Toast } from '@/components/ui';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface ProductCardProps {
   product: Product;
@@ -16,7 +16,7 @@ interface ProductCardProps {
   onWishlistChange?: () => void;
 }
 
-export default function ProductCard({ product, isInWishlist = false, onWishlistChange }: ProductCardProps) {
+function ProductCard({ product, isInWishlist = false, onWishlistChange }: ProductCardProps) {
   const router = useRouter();
   const [isWishlisted, setIsWishlisted] = useState(isInWishlist);
   const [isToggling, setIsToggling] = useState(false);
@@ -34,17 +34,35 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
   // Determine stock status
   const getStockStatus = () => {
     if (stock === 0) {
-      return { text: 'Hết hàng', color: 'text-red-600' };
+      return { 
+        text: 'Hết hàng', 
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
+        dotColor: 'bg-red-600',
+        animation: 'animate-pulse'
+      };
     } else if (stock > 0 && stock <= 10) {
-      return { text: 'Sắp hết', color: 'text-yellow-600' };
+      return { 
+        text: 'Sắp hết', 
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50',
+        dotColor: 'bg-yellow-500',
+        animation: 'animate-pulse'
+      };
     } else {
-      return { text: 'Còn hàng', color: 'text-green-600' };
+      return { 
+        text: 'Còn hàng', 
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        dotColor: 'bg-green-500',
+        animation: ''
+      };
     }
   };
 
   const stockStatus = getStockStatus();
 
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
+  const handleToggleWishlist = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -74,14 +92,13 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
         }
       }
     } catch (error) {
-      console.error('Error toggling wishlist:', error);
       setToast({ message: 'Có lỗi xảy ra, vui lòng thử lại!', type: 'error' });
     } finally {
       setIsToggling(false);
     }
-  };
+  }, [product._id, isWishlisted, onWishlistChange, router]);
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -101,7 +118,7 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
       console.error('Error adding to cart:', error);
       setToast({ message: 'Có lỗi xảy ra khi thêm vào giỏ hàng!', type: 'error' });
     }
-  };
+  }, [product._id, isOutOfStock, router]);
 
   return (
     <>
@@ -114,9 +131,9 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
       )}
       <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
         {/* Image Container */}
-        <Link href={`/products/${product._id}`} className="block relative aspect-[4/3] overflow-hidden bg-gray-100 group/image">
+        <Link href={`/products/${product._id}`} className="block relative aspect-4/3 overflow-hidden bg-gray-100 group/image">
           {(product.image && typeof product.image === 'string' && product.image.trim()) || (product.images && product.images.length > 0) ? (
-            <Image
+            <LazyImage
               src={
                 product.image && typeof product.image === 'string' && product.image.trim() 
                   ? product.image 
@@ -125,9 +142,9 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
                     : (product.images![0] as { url: string })?.url || ''
               }
               alt={product.name}
-              fill
+              className="w-full h-full"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover/image:scale-110"
+              objectFit="cover"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -167,8 +184,10 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
 
           {/* Stock Status */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-500">Tình trạng:</span>
-            <span className={`text-sm font-semibold ${stockStatus.color}`}>
+            <span 
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${stockStatus.bgColor} ${stockStatus.color} ${stockStatus.animation}`}
+            >
+              <span className={`w-2 h-2 rounded-full ${stockStatus.dotColor} ${stockStatus.animation}`}></span>
               {stockStatus.text}
             </span>
           </div>
@@ -203,3 +222,5 @@ export default function ProductCard({ product, isInWishlist = false, onWishlistC
     </>
   );
 }
+
+export default memo(ProductCard);

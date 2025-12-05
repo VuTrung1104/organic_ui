@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Leaf, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { Toast } from '@/components/ui';
 import { useToast } from '@/lib/hooks';
 import { ERROR_MESSAGES, STORAGE_KEYS } from '@/lib/constants';
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const { toast, showToast } = useToast();
@@ -69,7 +69,7 @@ export default function LoginPage() {
               <Leaf className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-              TrungOrganic
+              EcoFresh
             </h1>
           </div>
           <p className="text-gray-600 text-lg">Đăng nhập vào tài khoản của bạn</p>
@@ -182,5 +182,13 @@ export default function LoginPage() {
       </div>
     </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Đang tải...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

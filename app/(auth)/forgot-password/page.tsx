@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                 <Leaf className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-                TrungOrganic
+                EcoFresh
               </h1>
             </div>
             <p className="text-gray-600 text-lg">

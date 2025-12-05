@@ -168,7 +168,7 @@ export default function AddressesPage() {
                       required
                       value={formData.fullname}
                       onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                       placeholder="Nhập họ tên người nhận"
                     />
                   </div>
@@ -181,7 +181,7 @@ export default function AddressesPage() {
                       required
                       value={formData.phoneNumber}
                       onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                       placeholder="Nhập số điện thoại"
                     />
                   </div>
@@ -196,7 +196,7 @@ export default function AddressesPage() {
                     required
                     value={formData.addressLine}
                     onChange={(e) => setFormData({ ...formData, addressLine: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                     placeholder="Số nhà, tên đường..."
                   />
                 </div>
@@ -208,7 +208,7 @@ export default function AddressesPage() {
                       type="text"
                       value={formData.ward}
                       onChange={(e) => setFormData({ ...formData, ward: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                       placeholder="Phường/Xã"
                     />
                   </div>
@@ -218,7 +218,7 @@ export default function AddressesPage() {
                       type="text"
                       value={formData.district}
                       onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                       placeholder="Quận/Huyện"
                     />
                   </div>
@@ -231,7 +231,7 @@ export default function AddressesPage() {
                       required
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-600 placeholder:opacity-100 text-gray-700"
                       placeholder="Tỉnh/Thành phố"
                     />
                   </div>

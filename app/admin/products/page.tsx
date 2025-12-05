@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Edit, Trash2, Search, X, Upload, Image as ImageIcon, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiService, type Product, type Category } from '@/lib/api';
 import { Toast, ConfirmDialog } from '@/components/ui';
+import { useDebounce } from '@/lib/hooks';
 
 export default function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,6 +13,7 @@ export default function ProductsManager() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -22,6 +24,7 @@ export default function ProductsManager() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -43,8 +46,19 @@ export default function ProductsManager() {
   });
 
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchProducts();
+    }
+  }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    fetchProducts();
   }, [currentPage]);
 
   const fetchProducts = async () => {
@@ -53,7 +67,8 @@ export default function ProductsManager() {
       const response = await apiService.fetchProducts({ 
         page: currentPage,
         limit: 10, 
-        includeDeleted: false 
+        includeDeleted: false,
+        search: debouncedSearchTerm || undefined
       });
       setProducts(response.data);
       setTotal(response.pagination?.total || response.total || 0);
@@ -91,7 +106,7 @@ export default function ProductsManager() {
       const imageIds: string[] = [];
       
       if (product.images && Array.isArray(product.images)) {
-        product.images.forEach(img => {
+        product.images.forEach((img: any) => {
           if (typeof img === 'object' && img.url) {
             existingImages.push(img.url);
             imageIds.push(img.id || '');
@@ -180,7 +195,7 @@ export default function ProductsManager() {
         message: 'Bạn có chắc chắn muốn xóa ảnh này khỏi sản phẩm không?',
         onConfirm: async () => {
           try {
-            const productId = (editingProduct as any).id || editingProduct._id;
+            const productId = editingProduct._id;
             await apiService.deleteProductImage(productId, imageId);
             
             // Remove from state
@@ -262,12 +277,12 @@ export default function ProductsManager() {
       let isNewProduct = false;
 
       if (editingProduct) {
-        const editProductId = (editingProduct as any).id || editingProduct._id;
+        const editProductId = editingProduct._id;
         await apiService.updateProduct(editProductId, dataToSubmit);
         productId = editProductId;
       } else {
         const newProduct = await apiService.createProduct(dataToSubmit);
-        productId = (newProduct as any).id || newProduct._id;
+        productId = newProduct._id;
         isNewProduct = true;
       }
 
@@ -302,15 +317,27 @@ export default function ProductsManager() {
   };
 
   const handleDelete = async (productId: string) => {
+    console.log('Deleting product with ID:', productId);
+    console.log('Current products:', products.map(p => ({ id: p._id, name: p.name })));
+    
     setConfirmDialog({
       isOpen: true,
       title: 'Xóa sản phẩm',
       message: 'Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.',
       onConfirm: async () => {
         try {
+          console.log('Confirming delete for product ID:', productId);
           await apiService.deleteProduct(productId);
+          
+          console.log('Delete successful, refreshing product list...');
+          
           setToast({ message: 'Xóa sản phẩm thành công!', type: 'success' });
-          fetchProducts();
+
+          if (products.length === 1 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          } else {
+            await fetchProducts();
+          }
         } catch (error) {
           console.error('Error deleting product:', error);
           setToast({ message: 'Không thể xóa sản phẩm!', type: 'error' });
@@ -321,17 +348,7 @@ export default function ProductsManager() {
     });
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg text-gray-600">Đang tải...</div>
-      </div>
-    );
-  }
+  // Không cần filter client-side nữa vì đã tìm kiếm qua API
 
   return (
     <>
@@ -368,6 +385,7 @@ export default function ProductsManager() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Tìm kiếm sản phẩm..."
               value={searchTerm}
@@ -404,7 +422,22 @@ export default function ProductsManager() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.map((product) => {
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="flex justify-center items-center">
+                        <div className="text-lg text-gray-600">Đang tải...</div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : products.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      {debouncedSearchTerm ? 'Không tìm thấy sản phẩm nào' : 'Chưa có sản phẩm nào'}
+                    </td>
+                  </tr>
+                ) : (
+                  products.map((product) => {
                   const productImages = (product as any).images || product.images || [];
                   const displayImage = productImages.length > 0 
                     ? productImages[0].url || productImages[0] 
@@ -415,7 +448,7 @@ export default function ProductsManager() {
                     : product.category?.name;
                   
                   return (
-                  <tr key={(product as any).id || product._id} className="hover:bg-gray-50 transition">
+                  <tr key={product._id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                         {displayImage ? (
@@ -464,7 +497,7 @@ export default function ProductsManager() {
                         <Edit className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => handleDelete((product as any).id || product._id)}
+                        onClick={() => handleDelete(product._id)}
                         className="inline-flex items-center justify-center w-9 h-9 text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Xóa"
                       >
@@ -472,7 +505,9 @@ export default function ProductsManager() {
                       </button>
                     </td>
                   </tr>
-                )})}
+                  );
+                })
+                )}
               </tbody>
             </table>
           </div>

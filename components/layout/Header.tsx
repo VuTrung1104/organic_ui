@@ -23,7 +23,7 @@ export default function Header() {
               <Leaf className="w-7 h-7 text-white" />
             </div>
             <span className="text-2xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-              TrungOrganic
+              EcoFresh
             </span>
           </Link>
           

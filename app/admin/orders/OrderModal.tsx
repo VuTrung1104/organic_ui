@@ -231,7 +231,7 @@ export default function OrderModal({ orderId, onClose }: OrderModalProps) {
                   </div>
                   <div className="border-t border-green-200 pt-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold">Tổng cộng</span>
+                      <span className="text-lg font-semibold text-gray-700">Tổng cộng</span>
                       <span className="text-2xl font-bold text-red-600">
                         {order.totalAmount.toLocaleString('vi-VN')}đ
                       </span>

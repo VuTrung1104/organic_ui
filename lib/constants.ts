@@ -41,6 +41,11 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `/api/v1/order/${id}`,
     CHECKOUT: '/api/v1/order/checkout-from-cart',
   },
+  // Payment
+  PAYMENT: {
+    MOMO_CREATE: '/api/v1/payments/momo/create',
+    MOMO_RETURN: '/api/v1/payments/momo/return',
+  },
   // Wishlist
   WISHLIST: {
     LIST: '/api/v1/wishlist',

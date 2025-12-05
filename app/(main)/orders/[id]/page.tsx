@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { apiService, type Order } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header, Footer } from '@/components/layout';
+import { formatPrice } from '@/lib/utils/formatters';
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -25,22 +26,13 @@ export default function OrderDetailPage() {
     const fetchOrderDetail = async () => {
       setLoading(true);
       try {
-        // Get order from orders list
-        const response = await apiService.getOrders({ limit: 100 });
-        const ordersData = Array.isArray(response) ? response : (response.data || []);
-        const foundOrder = ordersData.find((o: any) => (o.id || o._id) === orderId);
+        const orderData = await apiService.getOrderDetail(orderId);
         
-        if (foundOrder) {
-          const mappedOrder = {
-            ...foundOrder,
-            _id: foundOrder.id || foundOrder._id,
-            status: foundOrder.status || 'PENDING',
-            orderItems: foundOrder.orderItems || [],
-          };
-          setOrder(mappedOrder);
+        if (orderData) {
+          setOrder(orderData);
         }
       } catch (error) {
-        console.error('Error fetching order:', error);
+        // Error fetching order
       } finally {
         setLoading(false);
       }
@@ -117,7 +109,7 @@ export default function OrderDetailPage() {
       case 'MOMO':
         return 'Ví điện tử MoMo';
       case 'BANK_TRANSFER':
-        return 'Chuyển khoản ngân hàng';
+        return 'VNPay';
       default:
         return method || 'COD';
     }
@@ -232,8 +224,18 @@ export default function OrderDetailPage() {
                   <div className="space-y-4">
                     {order.orderItems.map((item, index) => (
                       <div key={index} className="flex gap-4 p-4 border border-gray-100 rounded-xl hover:border-green-200 transition">
-                        <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                          <Package className="w-8 h-8 text-gray-400" />
+                        <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                          {item.productImage ? (
+                            <Image 
+                              src={item.productImage} 
+                              alt={item.productName}
+                              width={80}
+                              height={80}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Package className="w-8 h-8 text-gray-400" />
+                          )}
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 mb-1">{item.productName}</h3>
@@ -241,10 +243,10 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-red-600">
-                            {item.price.toLocaleString('vi-VN')}đ
+                            {formatPrice(item.price)}
                           </p>
                           <p className="text-sm text-gray-500 mt-1">
-                            = {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                            = {formatPrice(item.price * item.quantity)}
                           </p>
                         </div>
                       </div>
@@ -303,7 +305,7 @@ export default function OrderDetailPage() {
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-gray-700 mb-2">
                       <span>Tạm tính:</span>
-                      <span>{order.totalAmount.toLocaleString('vi-VN')}đ</span>
+                      <span>{formatPrice(order.totalAmount)}</span>
                     </div>
                     <div className="flex justify-between text-gray-700 mb-2">
                       <span>Giảm giá:</span>
@@ -319,7 +321,7 @@ export default function OrderDetailPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-gray-900">Tổng cộng:</span>
                       <span className="text-2xl font-bold text-red-600">
-                        {order.totalAmount.toLocaleString('vi-VN')}đ
+                        {formatPrice(order.totalAmount)}
                       </span>
                     </div>
                   </div>

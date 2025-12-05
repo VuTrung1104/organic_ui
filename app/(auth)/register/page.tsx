@@ -127,7 +127,7 @@ export default function RegisterPage() {
               <Leaf className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-green-600" style={{fontFamily: 'cursive'}}>
-              TrungOrganic
+              EcoFresh
             </h1>
           </div>
           {!showVerifyForm && (
