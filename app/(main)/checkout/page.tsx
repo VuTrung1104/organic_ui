@@ -70,6 +70,26 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate stock availability before checkout
+    const outOfStockItems = cartItems.filter((item: any) => {
+      const product = item.productId || item.product;
+      const availableStock = product?.stock ?? product?.quantity ?? 0;
+      return availableStock < item.quantity;
+    });
+
+    if (outOfStockItems.length > 0) {
+      const productNames = outOfStockItems.map((item: any) => {
+        const product = item.productId || item.product;
+        const availableStock = product?.stock ?? product?.quantity ?? 0;
+        return `${product?.name || 'Sản phẩm'} (Còn: ${availableStock}, Yêu cầu: ${item.quantity})`;
+      }).join(', ');
+      setToast({ 
+        message: `Sản phẩm không đủ số lượng: ${productNames}`, 
+        type: 'error' 
+      });
+      return;
+    }
+
     // Validate amount for MoMo (min 1,000 VND, max 50,000,000 VND)
     if (paymentMethod === 'MOMO') {
       if (totalAmount < 1000) {

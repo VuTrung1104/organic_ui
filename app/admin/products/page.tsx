@@ -317,19 +317,13 @@ export default function ProductsManager() {
   };
 
   const handleDelete = async (productId: string) => {
-    console.log('Deleting product with ID:', productId);
-    console.log('Current products:', products.map(p => ({ id: p._id, name: p.name })));
-    
     setConfirmDialog({
       isOpen: true,
       title: 'Xóa sản phẩm',
       message: 'Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.',
       onConfirm: async () => {
         try {
-          console.log('Confirming delete for product ID:', productId);
           await apiService.deleteProduct(productId);
-          
-          console.log('Delete successful, refreshing product list...');
           
           setToast({ message: 'Xóa sản phẩm thành công!', type: 'success' });
 
@@ -348,7 +342,6 @@ export default function ProductsManager() {
     });
   };
 
-  // Không cần filter client-side nữa vì đã tìm kiếm qua API
 
   return (
     <>

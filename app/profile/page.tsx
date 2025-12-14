@@ -141,7 +141,6 @@ export default function ProfilePage() {
 
             if (response.ok) {
               const result = await response.json();
-              // Update profile with new avatar
               const newAvatar =
                 result.data?.avatar ||
                 result.avatar ||
@@ -149,7 +148,6 @@ export default function ProfilePage() {
                 result.url;
               if (newAvatar) {
                 setProfile({ ...updated, avatar: newAvatar });
-                // Reload page to update header avatar
                 setTimeout(() => {
                   window.location.reload();
                 }, 1000);
