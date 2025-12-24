@@ -62,20 +62,20 @@ export default function AdminDashboard() {
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-gray-900 mb-1 tabular-nums">
-              {currentTime.toLocaleTimeString('vi-VN', { 
+              {currentTime ? currentTime.toLocaleTimeString('vi-VN', { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 second: '2-digit',
                 hour12: false
-              })}
+              }) : '--:--:--'}
             </div>
             <p className="text-sm text-gray-500">
-              {currentTime.toLocaleDateString('vi-VN', { 
+              {currentTime ? currentTime.toLocaleDateString('vi-VN', { 
                 weekday: 'long', 
                 day: 'numeric', 
                 month: 'long', 
                 year: 'numeric' 
-              })}
+              }) : 'Đang tải...'}
             </p>
           </div>
         </div>
