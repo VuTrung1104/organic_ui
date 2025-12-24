@@ -109,7 +109,8 @@ export default function CheckoutPage() {
       if (paymentMethod === 'MOMO') {
         const momoResult = await apiService.createMomoPayment(
           totalAmount,
-          `Thanh toán đơn hàng #${orderResult.orderId}`
+          `Thanh toán đơn hàng #${orderResult.orderId}`,
+          orderResult.orderId 
         );
 
         if (momoResult.payUrl) {

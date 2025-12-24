@@ -333,14 +333,14 @@ class ApiService {
     }
   }
 
-  async createMomoPayment(amount: number, orderInfo: string): Promise<{ orderId: string; requestId: string; payUrl: string; qrCodeUrl: string }> {
+  async createMomoPayment(amount: number, orderInfo: string, mongoOrderId?: string): Promise<{ orderId: string; requestId: string; payUrl: string; qrCodeUrl: string }> {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.PAYMENT.MOMO_CREATE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ amount, orderInfo }),
+        body: JSON.stringify({ amount, orderInfo, mongoOrderId }),
       });
 
       if (!response.ok) {
